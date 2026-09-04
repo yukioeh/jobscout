@@ -1,0 +1,191 @@
+"""Cover letter generation, T-table format.
+
+Same principle as the resume: the template is edited, never rebuilt, so
+the layout, the table borders and the signature image survive untouched.
+
+The left column is the employer's own words, shortened. The right column
+is assembled from claim text and metrics. No sentence is written at
+generation time that isn't traceable to a claim id.
+"""
+
+from __future__ import annotations
+
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+
+import yaml
+from lxml import etree
+
+W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+ROOT = Path(__file__).resolve().parent.parent.parent
+CLAIMS = {c["id"]: c for c in yaml.safe_load((ROOT / "dossier" / "claims.yaml").read_text())["claims"]}
+MERGE_RUNS = "/mnt/skills/public/docx/scripts/merge_runs.py"
+
+# Opening paragraphs. One per lead, matching the resume's summary lead
+# so the two documents tell the same story.
+OPENERS = {
+    "LEAD-ADOPTION": (
+        "I lead enablement teams that build AI systems rather than just run AI training. At "
+        "ServiceNow I led the AI Sales Coach enablement program that took adoption to 85% across a "
+        "6,000-person go-to-market organization, and directed the build of an AI content production "
+        "system that cut enablement asset creation time by 80%. The {role} role is that same work, "
+        "and it is the work I want to be doing."
+    ),
+    "LEAD-SYSTEMS": (
+        "I build the AI systems and lead the teams that deliver on top of them. At ServiceNow I "
+        "directed the build of an AI content production system that cut enablement asset creation "
+        "time by 80%, with an automated review pass on its own output, and led the enablement "
+        "program that took AI Sales Coach adoption to 85% across 6,000 sellers. The {role} role is "
+        "that same work, and it is the work I want to be doing."
+    ),
+    "LEAD-PLATFORM": (
+        "I lead platform portfolios and the AI programs that make them worth owning. At SAP I was "
+        "business owner for IRIS and integrated it across a 17-system sales and content stack, "
+        "lifting adoption 80%. At ServiceNow I directed the build of an AI content production system "
+        "that cut asset creation time by 80% and led the program that took AI adoption to 85% across "
+        "6,000 people. The {role} role is that same work, and it is the work I want to be doing."
+    ),
+    "LEAD-REVENUE": (
+        "I lead enablement programs that move pipeline, not just attendance. At ServiceNow I directed "
+        "the team that generated $76.3M in influenced pipeline and $45M in net annual contract value, "
+        "and led the enablement program that took AI Sales Coach adoption to 85% across 6,000 sellers. "
+        "The {role} role is that same work, and it is the work I want to be doing."
+    ),
+}
+
+DEFAULT_TEAM_SENTENCE = (
+    "I led a team of seven at ServiceNow and spent as much time coaching them to build with AI "
+    "as I did building myself. That is the operating model I would bring here."
+)
+
+CLOSERS = {
+    "remote_us": "I work from the Eastern time zone and am set up for a fully distributed team.",
+    "boston": "I am in the Greater Boston area and can be on site as the role requires.",
+    "bay_area": "I am relocating to the Bay Area and can be on site as the role requires.",
+    "cleveland": "I am in the Cleveland area and can be on site as the role requires.",
+    "hybrid_northeast": "I am relocating to the area and can be on site as the role requires.",
+    "other_us_hybrid": "I am open to relocating for this role and can be on site as it requires.",
+    "other_us_onsite": "I am open to relocating for this role and can be on site as it requires.",
+}
+
+
+def _sentences(text: str) -> list[str]:
+    """Split on sentence ends only. A period inside $76.3M is not one."""
+    out, buf = [], ""
+    for i, ch in enumerate(text):
+        buf += ch
+        if ch in ".?!" and (i + 1 >= len(text) or text[i + 1] == " "):
+            if not (ch == "." and i + 1 < len(text) and text[i + 1 : i + 2].isdigit()):
+                out.append(buf.strip())
+                buf = ""
+    if buf.strip():
+        out.append(buf.strip())
+    return out
+
+
+def evidence_line(claim_ids: list[str], limit: int = 300) -> str:
+    """Assemble the right-hand cell from claim text and metrics.
+
+    Metrics are the point of the cell, so they are placed first in the
+    budget and prose is trimmed around them. Trimming happens on whole
+    sentences: a cell that ends mid-figure is worse than a short cell.
+    """
+    # A metric may only appear alongside prose from its own claim.
+    # Otherwise a trimmed claim leaves its numbers stranded next to a
+    # different claim's sentence, which reads as a false attribution.
+    reserve = sum(len(m) + 2 for cid in claim_ids for m in CLAIMS[cid].get("metrics", []))
+    budget = limit - reserve
+    body, used = "", []
+    for cid in claim_ids:
+        before = body
+        for sentence in _sentences(" ".join(CLAIMS[cid]["text"].split())):
+            candidate = (body + " " + sentence).strip()
+            if len(candidate) > budget:
+                break
+            body = candidate
+        if body != before:
+            used.append(cid)
+
+    metrics = [m for cid in used for m in CLAIMS[cid].get("metrics", [])]
+    tail = (" " + ", ".join(metrics) + ".") if metrics else ""
+    return (body + tail).strip()
+
+
+def _write_cell(cell, text: str) -> None:
+    paragraphs = cell.findall(f"{W}p")
+    runs = [r for r in paragraphs[0].findall(f"{W}r") if r.find(f"{W}t") is not None]
+    if not runs:
+        raise ValueError("Table cell has no writable run")
+    runs[0].find(f"{W}t").text = text
+    runs[0].find(f"{W}t").set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    for r in runs[1:]:
+        r.find(f"{W}t").text = ""
+    for extra in paragraphs[1:]:
+        cell.remove(extra)
+
+
+def _set_para(paragraph, text: str) -> None:
+    runs = [r for r in paragraph.findall(f"{W}r") if r.find(f"{W}t") is not None]
+    runs[0].find(f"{W}t").text = text
+    for r in runs[1:]:
+        r.find(f"{W}t").text = ""
+
+
+def generate(
+    template: Path,
+    out: Path,
+    *,
+    team_name: str,
+    role_title: str,
+    lead_id: str,
+    location_tier: str,
+    team_sentence: str | None = None,
+    pairs: list[tuple[str, list[str]]],   # (requirement text, claim ids)
+) -> Path:
+    if not 1 <= len(pairs) <= 4:
+        raise ValueError("The T-table holds one to four requirement pairs")
+
+    tmp = Path(tempfile.mkdtemp())
+    unpacked = tmp / "doc"
+    subprocess.run(["unzip", "-q", str(template), "-d", str(unpacked)], check=True)
+    for link in unpacked.rglob("*"):
+        if link.is_symlink():
+            link.unlink()
+    subprocess.run(["python3", MERGE_RUNS, str(unpacked)], check=True, capture_output=True)
+
+    xml = unpacked / "word" / "document.xml"
+    tree = etree.parse(str(xml))
+    body = tree.getroot().find(f"{W}body")
+    paras = [el for el in body if etree.QName(el).localname == "p"]
+    table = next(el for el in body if etree.QName(el).localname == "tbl")
+
+    _set_para(paras[1], f"{team_name},")
+    _set_para(paras[2], OPENERS[lead_id].format(role=role_title))
+
+    rows = table.findall(f"{W}tr")
+    body_rows = rows[1:]
+    for row, (requirement, claim_ids) in zip(body_rows, pairs):
+        cells = row.findall(f"{W}tc")
+        _write_cell(cells[0], requirement)
+        _write_cell(cells[1], evidence_line(claim_ids))
+    for row in body_rows[len(pairs):]:
+        table.remove(row)
+
+    # The template carries JPMorgan's team size in this paragraph. It is
+    # replaced every time, never inherited.
+    team_para = next(p for p in paras if "team of seven at ServiceNow" in "".join(t.text or "" for t in p.iter(f"{W}t")))
+    _set_para(team_para, team_sentence or DEFAULT_TEAM_SENTENCE)
+
+    closer = next(p for p in paras if "on site as the role requires" in "".join(t.text or "" for t in p.iter(f"{W}t")))
+    _set_para(closer, CLOSERS.get(location_tier, CLOSERS["other_us_hybrid"])
+              + " I would welcome the chance to talk about what the first twelve months here would look like.")
+
+    tree.write(str(xml), xml_declaration=True, encoding="UTF-8", standalone=True)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    if out.exists():
+        out.unlink()
+    subprocess.run(["zip", "-Xrq", str(out.resolve()), "."], cwd=unpacked, check=True)
+    shutil.rmtree(tmp)
+    return out

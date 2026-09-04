@@ -1,0 +1,87 @@
+# Scoring configuration. Four dimensions stay separate and roll up.
+# Nothing in here is inside a prompt: the model extracts and judges,
+# this file decides what the judgments are worth.
+
+candidate:
+  name: Eric J. Harvey
+  base_level: director
+  # Level is two separate facts and they were wrongly fused before.
+  #
+  # 1. Title standing. What the role says about where he sits. This is
+  #    what gets scored, and it aims up, never down.
+  # 2. Direct reports. Whether people report to him. NOT scored. He
+  #    spent fourteen years on SAP's expert track without reports and
+  #    presents that as a credential. A director-level IC with real
+  #    scope is a yes.
+  #
+  # Anything at Manager or below is gated out in dealbreakers, not
+  # scored low, because no requirement match should rescue a title
+  # that is a step backwards.
+  level_fit:
+    director: 100
+    director_ic: 100         # director title, no direct reports
+    senior_director: 95
+    vp: 85
+    executive_director: 75   # bank ladder, stretch on a cold application
+    unknown: 60
+
+location:
+  # Ranked preference. Never zeroes a role on its own.
+  # Tokyo pulled out 2026-09-03: separate workstream, agency-led,
+  # gated on visa decisions. Slot back in at 100 when that changes.
+  tiers:
+    remote_us: 100
+    bay_area: 95
+    cleveland: 90
+    boston: 85
+    hybrid_northeast: 55     # NYC / Jersey City / Philadelphia metro
+    other_us_hybrid: 40
+    other_us_onsite: 25
+    international: 10
+  relocation_open: true
+
+# Competition is a separate fact from fit and is never mixed into the
+# score. It rides along in the email so a saturated remote posting can
+# be answered with speed rather than with a lower number.
+competition_signals:
+  surface_applicant_count: true      # when the source exposes it
+  surface_posting_age: true
+  flag_stale_after_hours: 72
+
+weights:
+  requirement_match: 0.60
+  level_fit: 0.20
+  location_fit: 0.20
+
+# Requirement-level weighting assigned by the first pass.
+requirement_tiers:
+  must_have: 3.0
+  strongly_preferred: 2.0
+  nice_to_have: 1.0
+
+# Evidence scoring for the second pass. One requirement at a time,
+# each scored against dossier evidence that must be cited by id.
+evidence_scale:
+  4: "Direct, recent, quantified evidence. Named in the dossier with a number."
+  3: "Direct evidence, older or unquantified."
+  2: "Adjacent experience. A hiring manager would accept it with a follow-up question."
+  1: "Thin. Defensible in an interview, not on paper."
+  0: "No evidence in the dossier. Do not invent any."
+
+# Hard stops. These fire before scoring and skip the role entirely.
+dealbreakers:
+  requires_clearance: true
+  requires_degree_not_held: true      # e.g. PhD, JD, CPA
+  requires_relocation_international: true
+  commission_only_or_unpaid: true
+  contract_under_months: 6
+  title_at_or_below_manager: true   # includes senior_manager
+  # Referral-track roles are out of scope for this scorer by design.
+  # JPMorgan scored 65 on a cold rubric and that is the correct read of
+  # the paper version. The referral is the thing the model cannot see,
+  # and a human is running that lane.
+
+thresholds:
+  tailor_and_alert: 80        # generate documents, send immediate email
+  digest_floor: 60            # appears in the daily digest, no documents
+  # below digest_floor: logged only, never surfaced

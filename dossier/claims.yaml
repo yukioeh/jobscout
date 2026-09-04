@@ -1,0 +1,259 @@
+# Every claim Eric can defend, with a stable id.
+# Scoring cites these ids. Generation copies these words.
+# If a generated line does not trace to an id here, it is a bug.
+#
+# Derived from EricHarvey-Master-Dossier-v3.md. When the dossier
+# changes, this file changes. Nothing else reads the dossier prose.
+
+claims:
+  # ---------- ServiceNow ----------
+  - id: SN-CONTENT-FACTORY
+    period: 2025-2026
+    text: >
+      Built and deployed an AI content production system at ServiceNow.
+      Users uploaded raw system demos and selected an output recipe; it
+      returned near-final job aids, overviews, video scripts, VILT
+      outlines, and b-roll and image packages, generated UAT scripts,
+      and ran an automated AI review pass on its own output.
+    metrics: ["~80% reduction in enablement asset creation time"]
+    attribution: personal_build
+    tags: [ai_systems, content_production, llm_workflow, qa_loops, hands_on]
+
+  - id: SN-COACH-ADOPTION
+    period: 2025-2026
+    text: >
+      Led the AI Sales Coach enablement program across a 6,000+ person
+      sales organization. Team trained 6,000+ at global Sales Kickoff
+      and 2,000+ virtually, delivering 12 Co-Labs, 10 Office Hours, and
+      26 bespoke AI assets.
+    metrics: ["85% adoption", "4.5/5 CSAT"]
+    attribution: team_under_direction
+    tags: [ai_adoption, enablement, change_management, measurement, scale]
+
+  - id: SN-DEMAND-AUTOMATION
+    period: 2025-2026
+    text: >
+      Directed the team scaling enablement and adoption across
+      Outreach.io, ZoomInfo, and LinkedIn Sales Navigator for 1,500+
+      sellers in 10+ regions.
+    metrics: ["$76.3M influenced pipeline", "426 qualified opportunities", "$45M NACV"]
+    attribution: team_under_direction
+    tags: [martech, adoption, revenue_impact, multi_region]
+
+  - id: SN-CATALOG-PROTOTYPE
+    period: 2026
+    text: >
+      Designed a structured catalog indexing enablement assets and
+      mapping them to sales methodology stages. Early, sole contributor.
+    metrics: []
+    attribution: personal_prototype
+    tags: [capability_catalog, taxonomy, self_serve, playbook]
+    caution: "Designed / prototyped only. Never write built or deployed."
+
+  - id: SN-CRM-AGENT-PROTOTYPE
+    period: 2026
+    text: >
+      Designed an in-CRM answer agent for a new platform going to 7,000+
+      sellers, built to move from Claude Project prototype to skill to a
+      companywide AI Sales Coach plugin, embedded in the CRM via
+      Moveworks. Early.
+    metrics: []
+    attribution: personal_prototype
+    tags: [in_workflow_delivery, agent, crm, llm_workflow]
+    caution: "Designed / prototyped only. Never write built or deployed."
+
+  - id: SN-GOVERNANCE
+    period: 2025-2026
+    text: >
+      Sustained delivery and executive reporting through a major Sales
+      CRM program delay, keeping the asset build and a multi-format
+      learning plan on track while dependent workstreams slipped.
+    metrics: []
+    attribution: personal
+    tags: [governance, executive_reporting, controls, ambiguity]
+
+  - id: SN-TEAM
+    period: 2025-2026
+    text: >
+      Led a team of seven (employees and contractors) owning AI and
+      platform enablement for the internal GTM technology stack
+      supporting 1,500+ sellers across 10+ regions. Coached the team to
+      build with AI rather than only train on it.
+    metrics: ["7 direct reports"]
+    attribution: personal
+    tags: [people_leadership, coaching, talent_development]
+
+  # ---------- Vector Creative Labs ----------
+  - id: VCL-TRAINING
+    period: 2024-present
+    text: >
+      Designed a modular AI training and change management curriculum
+      for global B2B clients, including a five-day engagement with the
+      full sales and marketing organization of a global fuel technology
+      firm covering prompt engineering, workflow automation, and
+      ethical AI use.
+    metrics: ["90 NPS"]
+    attribution: personal
+    tags: [training, change_management, responsible_ai, consulting]
+
+  - id: VCL-PIPELINE
+    period: 2024-present
+    text: >
+      Turned a static marketing PDF into a high-end video, 50 social
+      graphics, and a full set of SDR, AE, and social activation assets
+      for a Fortune 500 client, every piece generated and assembled
+      through AI workflows rather than a traditional production team.
+    metrics: []
+    attribution: personal
+    tags: [content_production, marketing, ai_systems]
+
+  - id: VCL-AGENTS
+    period: 2024-present
+    text: >
+      Built agent workflows for lead scoring and personalized outreach
+      at a global consulting firm using Make.com and n8n.
+    metrics: []
+    attribution: personal
+    tags: [llm_workflow, automation, hands_on, martech]
+
+  # ---------- SAP ----------
+  - id: SAP-AI-COMMUNITY
+    period: 2018-2024
+    text: >
+      Co-founded SAP's cross-organizational AI community spanning
+      marketing, sales, and presales. Led the training curriculum, a
+      self-serve catalog of 75 sales-specific prompts, and the community
+      model. Embedded AI enablement into SAP's LACE and Customer Value
+      Journey methodologies.
+    metrics: ["300+ professionals reached", "75-prompt catalog"]
+    attribution: personal
+    tags: [ai_adoption, capability_catalog, self_serve, influence_without_authority, marketing]
+    caution: "Co-founded a community. Never a function, never from nothing."
+
+  - id: SAP-IRIS-OWNERSHIP
+    period: 2013-2018
+    text: >
+      Business owner for IRIS, SAP's video content delivery platform,
+      co-developed with Kaltura. Defined capability requirements,
+      prioritized what shipped against GTM needs, drove adoption.
+    metrics: ["380,000+ video messages", "22,000 opportunities influenced", "€7.58B influenced total contract value"]
+    attribution: personal
+    tags: [platform_ownership, roadmap, vendor_partnership, prioritization]
+    caution: "Influenced total contract value, never revenue or pipeline. Platform ownership, never product roadmap ownership."
+
+  - id: SAP-IRIS-INTEGRATION
+    period: 2013-2018
+    text: >
+      Integrated IRIS across 17 sales and content systems (Adobe
+      Experience Manager, Seismic, Highspot, Consensus, Outreach.io,
+      6sense, Sprinklr), working with martech and IT so content flowed
+      between tools.
+    metrics: ["80% lift in key platform adoption", "25% cut in content discovery time"]
+    attribution: personal
+    tags: [martech, integration, interoperability, platform_portfolio]
+    caution: "Integrated across 17 systems. Never consolidated 17 platforms."
+
+  - id: SAP-MICROSITES
+    period: 2018-2024
+    text: >
+      Engineered and globally implemented a microsite franchise model
+      across five regions, consolidating delivery platforms from 13 to 3.
+    metrics: ["6,000+ microsites in 2023", "4x delivery volume", "15,000 opportunities influenced", "€342M total contract value"]
+    attribution: personal
+    tags: [platform_rationalization, operating_model, shared_services, multi_region, marketing]
+
+  - id: SAP-STUDIOS
+    period: 2013-2018
+    text: >
+      Defined and executed the strategy for a worldwide network of 88
+      virtual studios delivering 115,000 hours of virtual presentations,
+      establishing a new Digital Hubs organization. Managed
+      multi-million-euro budgets, vendor selection, and contract
+      negotiation.
+    metrics: ["€14M+ annual cost savings", "88 studios", "115,000 hours"]
+    attribution: personal
+    tags: [scale, org_design, vendor_management, budget, cost_savings]
+
+  - id: SAP-FUNDING
+    period: 2018-2024
+    text: >
+      Won budget for centralized global programs by building the
+      business case with regional leadership across five regions. No
+      direct budget authority.
+    metrics: []
+    attribution: personal
+    tags: [business_case, roi, influence_without_authority, financial_discipline]
+
+  - id: SAP-ONBOARDING
+    period: 2018-2024
+    text: >
+      Designed a digital enablement program and global badge curriculum
+      for 2,400+ new hires across 65+ countries at the SAP Academy for
+      Customer Success.
+    metrics: ["2,400+ new hires", "65+ countries"]
+    attribution: personal
+    tags: [onboarding, curriculum, scale, multi_region]
+
+  - id: SAP-PRESALES-TOOLS
+    period: 2010-2013
+    text: >
+      Built self-service mobile prototyping tools and demos for 700+
+      sales and presales representatives; led creation of an internal
+      app store distributing 500+ apps across 3,000+ devices.
+    metrics: ["25% cut in demo creation time", "75% cut in time-to-demo"]
+    attribution: personal
+    tags: [self_serve, tooling, hands_on]
+
+  # Conditional. Eligible only when pass one produces a requirement
+  # about thought leadership, external visibility, publishing, or
+  # evangelism. Never cited otherwise, never leads a document.
+  - id: AUTH-AI-PUBLISHED
+    period: 2024-present
+    conditional_on_tags: [thought_leadership, external_visibility, evangelism, publishing]
+    text: >
+      Published research under The Authentic .AI: the AI Video
+      Transformation Pyramid, an emotional believability assessment for
+      AI-generated media, the "1984" ad recreation experiment, and the
+      "Beyond Sincerity" 3 Es framework.
+    metrics: []
+    attribution: personal
+    tags: [thought_leadership, external_visibility, publishing, research, ai]
+    caution: >
+      The Authentic .AI site states it does not offer commercial
+      services. Attribute all client work to Vector. This claim covers
+      the writing only.
+
+  # ---------- Credentials ----------
+  - id: CRED-MBA
+    text: "MBA, Marketing & Strategy, Duke Fuqua. Fuqua Scholar, top 10% of class."
+    tags: [education, marketing, strategy]
+
+  - id: CRED-AI
+    text: >
+      AWS Certified AI Practitioner; Change Management for Generative AI
+      (Vanderbilt); Google Cloud Digital Leader; AI Agents for Product
+      Leaders; Databricks Fundamentals.
+    tags: [certification, ai, change_management]
+
+  - id: CRED-JAPANESE
+    text: "Japanese, fluent, JLPT Level 2. English native."
+    tags: [language]
+
+# Gaps stated plainly. The scorer reads these and must score 0 where
+# they apply. They exist so the model cannot quietly fill them in.
+known_gaps:
+  - id: GAP-PRODUCT-MGMT
+    text: >
+      No formal product management background. Has owned platform
+      portfolios and their outcomes, has not run an agile product
+      organization with product owners, backlogs, and discovery practice.
+  - id: GAP-BUDGET
+    text: >
+      No direct budget authority in any role. Secured funding through
+      business cases built with regional leadership.
+  - id: GAP-TEAM-SIZE
+    text: "Largest direct team is seven."
+  - id: GAP-FINSERV
+    text: "No financial services industry experience."
+  - id: GAP-QUOTA
+    text: "Never carried a sales quota. Enablement and platform side throughout."

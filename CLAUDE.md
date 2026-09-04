@@ -1,0 +1,123 @@
+# Working on jobscout
+
+Read this before changing anything. It records decisions that were
+argued through already, so they don't get relitigated or quietly
+reversed. `README.md` covers how to run it; this covers why it is
+shaped the way it is.
+
+## What this is
+
+A job monitor for Eric Harvey's own search. Polls boards hourly, scores
+each posting against a claims file, and above 80 generates a tailored
+resume and cover letter and emails them as attachments with the apply
+link. Later it becomes a product at careerscout.app, but that product
+will not run on this code and nothing here should be shaped by it.
+
+## Non-negotiable
+
+**It drafts, it never submits.** No code path in this project contacts
+an employer. Do not add one. Do not add auto-apply, do not add
+auto-send, do not email anyone but Eric. The failure mode of an
+automated applicant is reputational and irreversible.
+
+**Every generated line traces to a claim id** in `dossier/claims.yaml`.
+The generator selects and orders; it does not write prose. A score above
+zero must cite a real id, and this is enforced in code after the model
+returns, not requested in a prompt. If you find yourself writing a new
+bullet at generation time, stop: add it to `config/bullets.yaml` with
+its claim ids instead.
+
+**Claims discipline is enforced in the data.** Never "consolidated 17
+platforms" (he integrated IRIS across 17 systems). Never "€7.58B in
+revenue" (influenced total contract value). Never "built" or "deployed"
+for the catalog or the in-CRM agent (designed, prototyped, unshipped).
+The `caution:` fields in claims.yaml are load-bearing.
+
+**Style rules apply to generated text.** No em dashes. No inflated
+buzzwords: pivotal, seamless, robust, delve, testament. Vary sentence
+length. These come from the dossier and Eric will notice.
+
+## Decisions already made
+
+**Level is title standing, not headcount.** A Director title with no
+direct reports scores 100, same as one with a team. Eric spent fourteen
+years on SAP's expert track without reports and presents that as a
+credential. Manager and below are *gated out entirely* rather than
+scored low, because no requirement match should rescue a step
+backwards. This corrected an earlier rubric that scored an IC role at 0
+and buried the highest-matching posting in the set.
+
+**Location never zeroes a role.** Ranked remote, Bay Area, Cleveland,
+Boston, then hybrid Northeast and down. Tokyo is commented out in
+`config/scoring.yaml` on purpose: it is his top location overall but a
+separate workstream, agency-led, gated on visa decisions. Do not
+uncomment it without being asked.
+
+**Fit and competition are separate facts.** Remote scores 100 despite
+drawing heavy applicant volume. The answer to volume is speed, surfaced
+as posting age in the email, not a lower score. Do not blend them.
+
+**Referral-track roles are out of scope.** JPMorgan scores 65 on this
+rubric and that is the correct read of the paper version of that role,
+which Eric agrees with. The referral is the thing the model cannot see.
+Do not build a special case for it.
+
+**The Authentic .AI is conditional.** It becomes eligible only when a
+posting asks for thought leadership or external visibility, and it never
+leads a document. Client work is attributed to Vector Creative Labs,
+because the Authentic .AI site states it does not offer commercial
+services.
+
+**Attachments, not cloud storage.** Documents are ~20KB, they attach
+cleanly, and this avoids an OAuth dependency. Local copies stay in
+`out/`. Drive was considered and dropped.
+
+**Pass two is batched but not holistic.** One call, but per-requirement
+output with independent scores and cited evidence. This was a cost fix
+(37k input tokens per posting down to 5.8k), not a rigor change. If you
+ever collapse it to a single holistic score, scores cluster and the
+system stops discriminating. That failure already happened once in an
+earlier Gemini-based attempt and is the reason for the two-pass design.
+
+## Before you change scoring
+
+Run `python eval/rescore.py` after any edit to `config/scoring.yaml`. It
+fails if the standard deviation drops below 8. Clustering means the
+dimensions have stopped doing work.
+
+Run `python eval/live_test.py` after changing models or prompts. It
+checks spread, agreement with hand scores, and whether the four
+requirements with no supporting evidence still come back 0. That third
+check is the important one: a model that inflates zeros looks fine on
+the other two and will cost Eric real afternoons.
+
+`eval/handscored.json` is ground truth from 2026-09-03, hand-scored
+against eight real postings. It is a starting point, not tuned. The
+`outcomes` table in the database is where real signal accumulates:
+what got applied to, what answered.
+
+## Known rough edges
+
+- The pre-filter matches on title only, so a good role with an unusual
+  title is dropped silently. Rejections log their reason; audit `scores`
+  for `prefilter:` rows occasionally.
+- `has_direct_reports` false-positives when a description mentions
+  individual contributors as part of the team being led. Not scored,
+  affects one cover letter sentence.
+- RSS entries rarely carry full descriptions. The gate refuses to score
+  anything under 600 characters rather than guessing from a title.
+- Nothing in this repo has made a live API call, fetched a real board,
+  or sent an email. Scoring logic and document generation were verified;
+  the network paths were not.
+
+## Where things live
+
+```
+config/scoring.yaml     weights, level values, location tiers, gates, thresholds
+config/bullets.yaml     bullet library, headers, summary leads
+config/sources.yaml     boards to poll, rss.app feed URLs
+dossier/claims.yaml     the evidence file. the only source of truth
+src/score.py            two passes
+src/tailor/             docx editing, never rebuilding
+eval/                   the harness that says whether a change was good
+```

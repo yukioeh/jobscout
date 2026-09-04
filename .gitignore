@@ -1,0 +1,7 @@
+.env
+venv/
+data/
+out/
+__pycache__/
+*.pyc
+eval/postings/
