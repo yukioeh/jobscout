@@ -77,9 +77,15 @@ location (20%), plus hard gates. A role can be a 90 on requirements and
 still not reach you.
 
 **Tailor** (`src/tailor/`) edits the master .docx rather than rebuilding
-it, so fonts, spacing and margins are untouched. Three changes only: the
-header line, the summary opening, and bullet order with one-for-one
-swap-ins. Bullet count never grows and the page count never moves.
+it, so fonts, spacing and margins are untouched. Four changes only: the
+header line, the location segment of the contact line, the summary
+opening, and bullet order with one-for-one swap-ins. Bullet count never
+grows and the page count never moves.
+
+The location line names the market a posting is hiring for and says
+Eric is open to relocating there. Home is Chagrin Falls, OH. It never
+claims he already lives somewhere he doesn't; the wording lives in
+`config/bullets.yaml` under `location_lines`.
 
 **Notify** (`src/notify.py`) attaches both documents and mails Eric and
 nobody else. No cloud storage, no OAuth. Local copies stay in `out/`.

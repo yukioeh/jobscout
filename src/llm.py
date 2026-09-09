@@ -77,7 +77,14 @@ def complete(spec: str, prompt: str, max_tokens: int = 3000) -> tuple[str, Usage
             GEMINI_BASE,
             {"Authorization": f"Bearer {os.environ['GOOGLE_API_KEY']}",
              "Content-Type": "application/json"},
-            {"model": model, "max_tokens": max_tokens,
+            # Thinking models (2.5+) spend an invisible, wildly variable
+            # number of tokens reasoning before they write the visible
+            # answer, out of this same max_tokens budget — usage.completion_tokens
+            # doesn't count that spend, so a call can silently run out of
+            # room and truncate mid-output while looking nowhere near the
+            # cap. Extraction and evidence-scoring here are mechanical, not
+            # judgment calls that benefit from it, so it's off.
+            {"model": model, "max_tokens": max_tokens, "reasoning_effort": "none",
              "messages": [{"role": "user", "content": prompt}]},
         )
         text = data["choices"][0]["message"]["content"]

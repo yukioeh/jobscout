@@ -22,6 +22,37 @@ APP_PASSWORD = os.environ["JOBSCOUT_APP_PASSWORD"]
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 
+def _coverage(item: dict) -> str:
+    """Must-have coverage, shown next to the score and never folded into
+    it. How many of the employer's hard requirements you can evidence
+    says more about whether you get a reply than the blended total
+    does, and a hard requirement with no evidence at all is the one
+    most likely to screen you out before a person reads anything."""
+    total = item.get("must_total")
+    if not total:
+        return ""
+    strong, zero = item.get("must_strong", 0), item.get("must_zero", 0)
+    bar = f"<b>{strong}/{total}</b> must-haves evidenced"
+    if not zero:
+        return f"<div style=\"margin-top:6px;font-size:13px;color:#1a7f37\">{bar}, none unevidenced</div>"
+    gaps = "".join(
+        f"<div style=\"font-size:12px;color:#a40e26;margin-left:10px\">no evidence: {g}</div>"
+        for g in item.get("must_gaps", [])
+    )
+    return (f"<div style=\"margin-top:6px;font-size:13px;color:#a40e26\">{bar}, "
+            f"<b>{zero} with no evidence</b></div>{gaps}")
+
+
+def _plain(item: dict) -> str:
+    """Plain-text fallback body. Same facts, no markup."""
+    line = f"{item['total']}  {item['company']} — {item['title']}"
+    if item.get("must_total"):
+        line += f"\nmust-haves {item.get('must_strong', 0)}/{item['must_total']} evidenced"
+        if item.get("must_zero"):
+            line += f", {item['must_zero']} with no evidence"
+    return f"{line}\n{item['url']}"
+
+
 def _row(item: dict) -> str:
     age = f"{item['age_hours']}h old" if item.get("age_hours") is not None else "age unknown"
     stale = " · <b>posted a while ago</b>" if (item.get("age_hours") or 0) > 72 else ""
@@ -34,6 +65,7 @@ def _row(item: dict) -> str:
         requirements {item['requirement_match']} · level {item['level_fit']} ·
         location {item['location_fit']} · {age}{stale}
       </div>
+      {_coverage(item)}
       <div style="margin-top:8px;font-size:14px">{item['why']}</div>
       <div style="margin-top:8px"><a href="{item['url']}">Apply</a></div>{docs}
     </td></tr>"""
@@ -45,8 +77,7 @@ def send(subject: str, items: list[dict], intro: str = "") -> None:
     msg["From"] = FROM
     msg["To"] = TO
     msg.set_content(
-        "\n\n".join(f"{i['total']}  {i['company']} — {i['title']}\n{i['url']}" for i in items)
-        or "Nothing above threshold."
+        "\n\n".join(_plain(i) for i in items) or "Nothing above threshold."
     )
     msg.add_alternative(
         "<html><body style=\"font-family:-apple-system,Segoe UI,sans-serif;max-width:640px\">"

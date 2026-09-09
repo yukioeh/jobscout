@@ -29,6 +29,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
+from dotenv import load_dotenv                       # noqa: E402
+load_dotenv(ROOT / ".env")
+
 from normalize import normalize                     # noqa: E402
 from schema import Posting                          # noqa: E402
 from score import PASS1, PASS2, score_posting       # noqa: E402
@@ -40,7 +43,9 @@ MUST_BE_ZERO = {
 }
 
 FILES = {"Webflow": "webflow", "Showpad": "showpad", "Pendo": "pendo",
-         "Customer.io": "customerio", "JPMorganChase": None}
+         "Customer.io": "customerio", "JPMorganChase": None,
+         "Databricks-Transform": "databricks-ai-transformation",
+         "Databricks-PMM-AI": "databricks-product-marketing-ai"}
 
 
 def main() -> None:

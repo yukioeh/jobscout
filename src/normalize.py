@@ -11,6 +11,10 @@ import re
 
 from schema import Level, LocationTier, Posting
 
+# Order matters: the first pattern that matches wins, so anything
+# carrying director-or-above standing is read before the junior titles
+# at the bottom. "Associate Director" is a Director; "Executive
+# Assistant" is not an executive.
 TITLE_LEVELS = [
     (r"\b(svp|evp|senior vice president)\b", Level.VP),
     (r"\bexecutive director\b", Level.EXECUTIVE_DIRECTOR),
@@ -19,6 +23,14 @@ TITLE_LEVELS = [
     (r"\b(head of|director)\b", Level.DIRECTOR),
     (r"\b(senior|sr\.?) manager\b", Level.SENIOR_MANAGER),
     (r"\bmanager\b", Level.MANAGER),
+    # Unambiguously below director. These are gated in run.py rather
+    # than scored, on the same reasoning as manager: no requirement
+    # match should rescue a step backwards. Ambiguous senior titles
+    # (lead, principal, head, owner, advisor, strategist) are
+    # deliberately absent -- at a smaller company those are often the
+    # top of the function, so they stay unknown, reach the model, and
+    # are handled by level_key() in score.py instead of dropped here.
+    (r"\b(specialist|coordinator|representative|assistant|analyst|intern)\b", Level.IC),
 ]
 
 IC_SIGNALS = [

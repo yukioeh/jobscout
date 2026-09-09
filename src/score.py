@@ -113,7 +113,7 @@ def extract_requirements(posting: Posting):
     text, usage = complete(
         PASS1,
         PASS_ONE.format(posting=posting.raw_text[:18000], themes=THEME_TAGS),
-        max_tokens=2500,
+        max_tokens=4000,   # headroom above observed ~700-1000 completion tokens
     )
     data = parse_json(text)
     reqs = [
@@ -123,10 +123,35 @@ def extract_requirements(posting: Posting):
     return reqs, data.get("level", "unknown"), data.get("tags", []), data.get("thin", False), usage
 
 
-def score_requirements(reqs: list[Requirement]) -> tuple[list[RequirementScore], Usage]:
+def eligible_claims(tags: list[str]) -> list[dict]:
+    """Claims this posting is allowed to be scored against.
+
+    A claim carrying conditional_on_tags is off the table unless the
+    posting asks for it. The Authentic .AI writing is the case this
+    exists for: it is real, but it only becomes relevant when a posting
+    wants thought leadership or external visibility, and the site
+    states it does not offer commercial services. select.py already
+    enforced this for resume bullets. Pass two never saw the rule, so
+    the scorer could cite it against anything -- and did, against "10+
+    years of experience in product, research, applied research" -- and
+    from there it flowed into cover letter cells.
+    """
+    out = []
+    for c in CLAIMS["claims"]:
+        cond = c.get("conditional_on_tags")
+        if cond and not (set(cond) & set(tags)):
+            continue
+        out.append(c)
+    return out
+
+
+def score_requirements(reqs: list[Requirement],
+                       tags: list[str] | None = None) -> tuple[list[RequirementScore], Usage]:
+    allowed = eligible_claims(tags or [])
+    allowed_ids = {c["id"] for c in allowed}
     numbered = "\n".join(f"{i}. [{r.tier.value}] {r.text}" for i, r in enumerate(reqs))
     prompt = PASS_TWO.format(
-        claims=yaml.safe_dump(CLAIMS["claims"], sort_keys=False),
+        claims=yaml.safe_dump(allowed, sort_keys=False),
         gaps=yaml.safe_dump(CLAIMS["known_gaps"], sort_keys=False),
         requirements=numbered,
     )
@@ -141,8 +166,13 @@ def score_requirements(reqs: list[Requirement]) -> tuple[list[RequirementScore],
         invented = set(cited) - VALID_IDS - GAP_IDS
         if invented:
             raise ValueError(f"Model cited claim ids that do not exist: {sorted(invented)}")
+        # A claim the posting never made eligible does not count, even
+        # if the model produced it from somewhere. Dropping it here
+        # means a score resting only on an ineligible claim falls back
+        # to 0 through the existing no-evidence rule below.
+        cited = [i for i in cited if i in allowed_ids or i in GAP_IDS]
         score = int(row["score"])
-        if score > 0 and not any(i in VALID_IDS for i in cited):
+        if score > 0 and not any(i in allowed_ids for i in cited):
             score = 0                      # no evidence, no credit
         rs = RequirementScore(
             requirement=reqs[row["index"]], score=score,
@@ -160,8 +190,29 @@ def roll_up(scores: list[RequirementScore]) -> float:
     return round(100 * earned / possible, 1) if possible else 0.0
 
 
-def level_key(level: str, has_reports: bool) -> str:
-    if level in ("ic",) or (level == "director" and not has_reports):
+DIRECTOR_PLUS = {"director", "senior_director", "executive_director", "vp"}
+
+
+def level_key(level: str, has_reports: bool, title_level: str = "unknown") -> str:
+    """Which level_fit value the posting earns.
+
+    Two readings of level exist and they are not interchangeable.
+    `level` is pass one's read of the whole posting; `title_level` is
+    what normalize.py read off the title alone.
+
+    director_ic exists for a Director-titled role with no reports --
+    the SAP expert track, the Workday "AI Strategist ... (Director,
+    IC)" posting in the eval set -- and is worth a full 100 on purpose.
+    But pass one labels any individual-contributor role "ic", including
+    a Sales Enablement Specialist, and mapping every "ic" into
+    director_ic handed those a 100 as well: the same standing as a
+    Director, off a title that says the opposite. So an "ic" reading
+    only reaches director_ic when the title itself carries
+    director-or-above standing. Otherwise it is scored as what it is.
+    """
+    if level == "ic":
+        return "director_ic" if title_level in DIRECTOR_PLUS else "ic"
+    if level == "director" and not has_reports:
         return "director_ic"
     return level
 
@@ -172,11 +223,12 @@ def score_posting(posting: Posting) -> tuple[Fit, list[str], float]:
     if thin or not reqs:
         raise ValueError("Posting too thin to score")
 
-    scores, u2 = score_requirements(reqs)
+    scores, u2 = score_requirements(reqs, tags)
 
     requirement_match = roll_up(scores)
     level_fit = float(CONFIG["candidate"]["level_fit"].get(
-        level_key(level, posting.has_direct_reports), 60))
+        level_key(level, posting.has_direct_reports,
+                  posting.level.value if posting.level else "unknown"), 60))
     location_fit = float(CONFIG["location"]["tiers"].get(
         posting.location_tier.value if posting.location_tier else "", 40))
 

@@ -11,17 +11,16 @@ generation time that isn't traceable to a claim id.
 from __future__ import annotations
 
 import shutil
-import subprocess
-import tempfile
 from pathlib import Path
 
 import yaml
 from lxml import etree
 
+from tailor._docx import merge_runs, repack, unpack
+
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 ROOT = Path(__file__).resolve().parent.parent.parent
 CLAIMS = {c["id"]: c for c in yaml.safe_load((ROOT / "dossier" / "claims.yaml").read_text())["claims"]}
-MERGE_RUNS = "/mnt/skills/public/docx/scripts/merge_runs.py"
 
 # Opening paragraphs. One per lead, matching the resume's summary lead
 # so the two documents tell the same story.
@@ -60,12 +59,19 @@ DEFAULT_TEAM_SENTENCE = (
     "as I did building myself. That is the operating model I would bring here."
 )
 
+# Home is Chagrin Falls, OH, in the Eastern time zone. These lines are
+# the one part of a generated document that does not trace to a claim
+# id, so they are written to be literally true. Two of them were not:
+# the Boston line put Eric in a city he does not live in, and the Bay
+# Area line described a move already under way. Openness to relocation
+# is the honest version of both, and it is what a hiring manager
+# actually needs to know.
 CLOSERS = {
     "remote_us": "I work from the Eastern time zone and am set up for a fully distributed team.",
-    "boston": "I am in the Greater Boston area and can be on site as the role requires.",
-    "bay_area": "I am relocating to the Bay Area and can be on site as the role requires.",
-    "cleveland": "I am in the Cleveland area and can be on site as the role requires.",
-    "hybrid_northeast": "I am relocating to the area and can be on site as the role requires.",
+    "boston": "I am open to relocating to the Greater Boston area and can be on site as the role requires.",
+    "bay_area": "I am open to relocating to the Bay Area and can be on site as the role requires.",
+    "cleveland": "I am in the Greater Cleveland area and can be on site as the role requires.",
+    "hybrid_northeast": "I am open to relocating for this role and can be on site as it requires.",
     "other_us_hybrid": "I am open to relocating for this role and can be on site as it requires.",
     "other_us_onsite": "I am open to relocating for this role and can be on site as it requires.",
 }
@@ -92,21 +98,37 @@ def evidence_line(claim_ids: list[str], limit: int = 300) -> str:
     budget and prose is trimmed around them. Trimming happens on whole
     sentences: a cell that ends mid-figure is worse than a short cell.
     """
-    # A metric may only appear alongside prose from its own claim.
-    # Otherwise a trimmed claim leaves its numbers stranded next to a
-    # different claim's sentence, which reads as a false attribution.
-    reserve = sum(len(m) + 2 for cid in claim_ids for m in CLAIMS[cid].get("metrics", []))
-    budget = limit - reserve
-    body, used = "", []
+    # Pass two is allowed to cite a known_gap id, and does: it is how a
+    # requirement gets scored honestly against a gap. Those ids are not
+    # in CLAIMS, so indexing them raised KeyError and killed the run
+    # partway through generating an above-threshold alert. They also
+    # have no business in this cell, which states qualifications -- a
+    # gap belongs in the interview, not in the letter.
+    claim_ids = [cid for cid in claim_ids if cid in CLAIMS]
+    if not claim_ids:
+        return ""
+
+    # A conditional claim never leads. It can support a cell, but the
+    # first sentence a reader sees is a claim that stands on its own.
+    claim_ids = sorted(claim_ids, key=lambda cid: bool(CLAIMS[cid].get("conditional_on_tags")))
+
+    # Reserve each claim's metrics as that claim earns its way in, not
+    # for every candidate up front. Reserving for the whole list meant
+    # a cell citing three metric-heavy claims budgeted for all of their
+    # numbers, left too little room for even the first sentence, and
+    # rendered completely empty -- a blank cell in the T-table.
+    body, used, reserve = "", [], 0
     for cid in claim_ids:
+        cost = sum(len(m) + 2 for m in CLAIMS[cid].get("metrics", []))
         before = body
         for sentence in _sentences(" ".join(CLAIMS[cid]["text"].split())):
             candidate = (body + " " + sentence).strip()
-            if len(candidate) > budget:
+            if len(candidate) > limit - (reserve + cost):
                 break
             body = candidate
         if body != before:
             used.append(cid)
+            reserve += cost
 
     metrics = [m for cid in used for m in CLAIMS[cid].get("metrics", [])]
     tail = (" " + ", ".join(metrics) + ".") if metrics else ""
@@ -147,13 +169,8 @@ def generate(
     if not 1 <= len(pairs) <= 4:
         raise ValueError("The T-table holds one to four requirement pairs")
 
-    tmp = Path(tempfile.mkdtemp())
-    unpacked = tmp / "doc"
-    subprocess.run(["unzip", "-q", str(template), "-d", str(unpacked)], check=True)
-    for link in unpacked.rglob("*"):
-        if link.is_symlink():
-            link.unlink()
-    subprocess.run(["python3", MERGE_RUNS, str(unpacked)], check=True, capture_output=True)
+    unpacked = unpack(template)
+    merge_runs(unpacked)
 
     xml = unpacked / "word" / "document.xml"
     tree = etree.parse(str(xml))
@@ -183,9 +200,6 @@ def generate(
               + " I would welcome the chance to talk about what the first twelve months here would look like.")
 
     tree.write(str(xml), xml_declaration=True, encoding="UTF-8", standalone=True)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    if out.exists():
-        out.unlink()
-    subprocess.run(["zip", "-Xrq", str(out.resolve()), "."], cwd=unpacked, check=True)
-    shutil.rmtree(tmp)
+    repack(unpacked, out)
+    shutil.rmtree(unpacked.parent)
     return out

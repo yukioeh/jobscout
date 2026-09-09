@@ -24,16 +24,27 @@ candidate:
     vp: 85
     executive_director: 75   # bank ladder, stretch on a cold application
     unknown: 60
+    # An IC role whose title carries no director standing. Not zeroed:
+    # zeroing an IC role is the rubric error that buried the
+    # highest-matching posting in the set. Not 100 either, which is
+    # what it silently earned before, by collapsing into director_ic.
+    ic: 60
 
 location:
   # Ranked preference. Never zeroes a role on its own.
   # Tokyo pulled out 2026-09-03: separate workstream, agency-led,
   # gated on visa decisions. Slot back in at 100 when that changes.
+  #
+  # Home is Chagrin Falls, OH, so cleveland carries no relocation
+  # friction and ranks just under remote. Boston and the Bay Area are
+  # both open on relocation and are held equal. NYC stays low on
+  # purpose: it is referral-track, and the referral is the thing this
+  # scorer cannot see.
   tiers:
     remote_us: 100
-    bay_area: 95
-    cleveland: 90
-    boston: 85
+    cleveland: 95            # home, no relocation
+    boston: 90               # open to relocation
+    bay_area: 90             # open to relocation
     hybrid_northeast: 55     # NYC / Jersey City / Philadelphia metro
     other_us_hybrid: 40
     other_us_onsite: 25

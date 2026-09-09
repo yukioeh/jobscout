@@ -5,10 +5,16 @@ and margins are Eric's and stay untouched: we swap text inside existing
 runs and move existing paragraph elements around. Nothing is generated
 from scratch, so nothing can drift away from how the master looks.
 
-The license, per the tailoring guide, is exactly three changes:
+The license, per the tailoring guide, is four changes:
   1. the header line under the name
-  2. the opening sentence of the summary
-  3. bullet order, plus one-for-one swap-ins from the library
+  2. the location segment of the contact line
+  3. the opening sentence of the summary
+  4. bullet order, plus one-for-one swap-ins from the library
+
+Number 2 was added after the master was found to state a city Eric
+does not live in on every application. It names the market a posting
+is hiring for and says he is open to relocating there. It never
+claims he is already there.
 
 Bullet count per role never grows. Two pages is the ceiling.
 """
@@ -16,18 +22,17 @@ Bullet count per role never grows. Two pages is the ceiling.
 from __future__ import annotations
 
 import shutil
-import subprocess
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
 from lxml import etree
 
+from tailor._docx import merge_runs, repack, unpack
+
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 ROOT = Path(__file__).resolve().parent.parent.parent
 LIBRARY = yaml.safe_load((ROOT / "config" / "bullets.yaml").read_text())
-MERGE_RUNS = "/mnt/skills/public/docx/scripts/merge_runs.py"
 
 ROLE_ANCHORS = {"servicenow": "SERVICENOW", "vector": "VECTOR CREATIVE LABS", "sap": "SAP"}
 
@@ -45,6 +50,7 @@ class Selection:
     bullet_order: dict[str, list[str]]      # role -> ordered bullet ids
     swap_ins: list[tuple[str, str]]         # (replaced_id, new_id)
     matched_tags: list[str]
+    location_line: str = ""                 # contact-line location segment
 
 
 def _text(p) -> str:
@@ -69,6 +75,32 @@ def _set_runs(paragraph, parts: list[str]) -> None:
         run.find(f"{W}t").text = ""
 
 
+def _set_location(paragraph, text: str) -> None:
+    """Rewrite the location segment of the contact line in place.
+
+    The line runs LOCATION • AVAILABILITY • PHONE • EMAIL • PROFILE.
+    Only the first two segments move, so this consumes runs up to and
+    including the second separator and leaves the contact details
+    alone. Word fragments this line across ten runs, so it is written
+    into the first of them and the rest of the consumed ones are
+    cleared, the same way _set_runs works.
+    """
+    runs = [r for r in paragraph.findall(f"{W}r") if r.find(f"{W}t") is not None]
+    consumed, seen = [], 0
+    for run in runs:
+        consumed.append(run)
+        seen += (run.find(f"{W}t").text or "").count("•")
+        if seen >= 2:
+            break
+    if seen < 2:
+        raise TailorError("Contact line is not shaped the way the master's is")
+    head = consumed[0].find(f"{W}t")
+    head.text = text
+    head.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    for run in consumed[1:]:
+        run.find(f"{W}t").text = ""
+
+
 def _bullets_for(body, anchor: str) -> list:
     """Every list paragraph belonging to the role starting at anchor."""
     ps = body.findall(f"{W}p")
@@ -85,13 +117,8 @@ def _bullets_for(body, anchor: str) -> list:
 
 
 def tailor(master: Path, out: Path, selection: Selection) -> Path:
-    tmp = Path(tempfile.mkdtemp())
-    unpacked = tmp / "doc"
-    subprocess.run(["unzip", "-q", str(master), "-d", str(unpacked)], check=True)
-    for link in unpacked.rglob("*"):
-        if link.is_symlink():
-            link.unlink()
-    subprocess.run(["python3", MERGE_RUNS, str(unpacked)], check=True, capture_output=True)
+    unpacked = unpack(master)
+    merge_runs(unpacked)
 
     xml = unpacked / "word" / "document.xml"
     tree = etree.parse(str(xml))
@@ -105,6 +132,16 @@ def tailor(master: Path, out: Path, selection: Selection) -> Path:
     if header_p is None:
         raise TailorError("Could not find the header line in the master")
     _set_runs(header_p, [selection.header])
+
+    # 1b. contact line: the market this posting is hiring for. A fourth
+    # edit beyond the three the tailoring guide licenses, added because
+    # the master's own location line was stating a city Eric does not
+    # live in on every application.
+    if selection.location_line:
+        contact_p = next((p for p in ps[:6] if "@" in _text(p)), None)
+        if contact_p is None:
+            raise TailorError("Could not find the contact line in the master")
+        _set_location(contact_p, selection.location_line)
 
     # 2. summary opening paragraph
     lead = next(l for l in LIBRARY["summary_leads"] if l["id"] == selection.summary_lead_id)
@@ -124,9 +161,6 @@ def tailor(master: Path, out: Path, selection: Selection) -> Path:
             _set_runs(slot, [b["label"], "  \u2013  ", b["body"].strip()])
 
     tree.write(str(xml), xml_declaration=True, encoding="UTF-8", standalone=True)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    if out.exists():
-        out.unlink()
-    subprocess.run(["zip", "-Xrq", str(out.resolve()), "."], cwd=unpacked, check=True)
-    shutil.rmtree(tmp)
+    repack(unpacked, out)
+    shutil.rmtree(unpacked.parent)
     return out

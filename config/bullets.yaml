@@ -55,6 +55,41 @@ servicenow:
       Coached the team to build with AI rather than only train on it, setting delivery standards and moving people from using AI tools to designing their own recipes, assets, and review criteria.
     tags: [people_leadership, coaching, talent_development, delivery_standards]
 
+  # Bench: alternate angles on the claims above. Each one displaces the
+  # bullet resting on the same claim when the posting leans that way,
+  # so the page says the same true things in the emphasis that fits.
+  - id: SN-B-FACTORY-OPS
+    in_master: false
+    claim_ids: [SN-CONTENT-FACTORY]
+    label: "Rebuilt how enablement assets get produced"
+    body: >-
+      Replaced a manual production process with an AI system that turns raw system demos into near-final job aids, overviews, video scripts, and VILT outlines against a selected output recipe. Asset creation time fell about 80%. The system generated its own UAT scripts and ran an automated review pass on its output.
+    tags: [operating_model, roi, measurement, automation, content_production]
+
+  - id: SN-B-ADOPTION-MEASURE
+    in_master: false
+    claim_ids: [SN-COACH-ADOPTION]
+    label: "Took AI adoption to 85% and measured it"
+    body: >-
+      Led the AI Sales Coach enablement program across a 6,000+ person go-to-market organization, tracking adoption to 85% and satisfaction to 4.5/5. The team trained 6,000+ at global Sales Kickoff and 2,000+ virtually across 12 Co-Labs and 10 Office Hours.
+    tags: [measurement, roi, executive_reporting, ai_adoption]
+
+  - id: SN-B-AGENT
+    in_master: false
+    claim_ids: [SN-CRM-AGENT-PROTOTYPE]
+    label: "Designed an in-CRM answer agent"
+    body: >-
+      Designed an answer agent to sit inside the CRM for a new platform going to 7,000+ sellers, with a path from Claude Project prototype to skill to a companywide AI Sales Coach plugin embedded through Moveworks. Early stage work.
+    tags: [llm_workflow, product, roadmap, ai_systems]
+
+  - id: SN-B-STACK
+    in_master: false
+    claim_ids: [SN-DEMAND-AUTOMATION]
+    label: "Ran adoption across the GTM technology stack"
+    body: >-
+      Directed the team scaling enablement and adoption across Outreach.io, ZoomInfo, and LinkedIn Sales Navigator for 1,500+ sellers in 10+ regions. The work produced $76.3M in influenced pipeline and 426 qualified opportunities.
+    tags: [martech, platform_portfolio, multi_region, sales, gtm]
+
 vector:
   - id: VCL-B-TRAINING
     in_master: true
@@ -88,6 +123,22 @@ vector:
     body: >-
       Published the AI Video Transformation Pyramid, an emotional believability assessment for AI-generated media, and the “Beyond Sincerity” framework under The Authentic .AI.
     tags: [thought_leadership, external_visibility, publishing, research]
+
+  - id: VCL-B-CHANGE
+    in_master: false
+    claim_ids: [VCL-TRAINING]
+    label: "Ran AI change management for global B2B clients"
+    body: >-
+      Designed a modular AI training and change management curriculum for global B2B clients covering prompt engineering, workflow automation, and ethical AI use. One five-day engagement took the full sales and marketing organization of a global fuel technology firm through it and returned a 90 NPS.
+    tags: [change_management, governance, controls, training]
+
+  - id: VCL-B-BUILD
+    in_master: false
+    claim_ids: [VCL-AGENTS, VCL-PIPELINE]
+    label: "Built the agent workflows and the pipelines they feed"
+    body: >-
+      Built agent workflows for lead scoring and personalized outreach at a global consulting firm using Make.com and n8n. Separately turned a static marketing PDF into a video, 50 social graphics, and a full set of SDR, AE, and social activation assets, every piece generated and assembled through AI workflows.
+    tags: [automation, hands_on, llm_workflow, integration]
 
 sap:
   - id: SAP-B-IRIS-OWN
@@ -145,6 +196,50 @@ sap:
     body: >-
       Designed a digital enablement program and global badge curriculum at the SAP Academy for Customer Success, materially reducing time to productivity.
     tags: [onboarding, curriculum, scale, multi_region, training]
+
+  - id: SAP-B-PRESALES-TOOLS
+    in_master: false
+    claim_ids: [SAP-PRESALES-TOOLS]
+    label: "Cut time-to-demo by 75%"
+    body: >-
+      Built self-service mobile prototyping tools and demos for 700+ sales and presales representatives, cutting demo creation time 25% and time-to-demo 75%. Led creation of an internal app store distributing 500+ apps across 3,000+ devices.
+    tags: [self_serve, hands_on, enablement, playbook]
+
+  - id: SAP-B-PORTFOLIO
+    in_master: false
+    claim_ids: [SAP-MICROSITES]
+    label: "Consolidated 13 delivery platforms to 3"
+    body: >-
+      Engineered and implemented a microsite franchise model across five regions, consolidating delivery platforms from 13 to 3. Volume grew 4x to 6,000+ microsites in 2023, influencing 15,000 opportunities and €342M in total contract value.
+    tags: [platform_portfolio, operating_model, governance, multi_region]
+
+  - id: SAP-B-CURRICULUM
+    in_master: false
+    claim_ids: [SAP-ONBOARDING, SAP-AI-COMMUNITY]
+    label: "Built global curricula for 2,400+ new hires"
+    body: >-
+      Designed a digital enablement program and global badge curriculum for 2,400+ new hires across 65+ countries at the SAP Academy for Customer Success. Also led the training curriculum and the 75-prompt self-serve catalog behind SAP's cross-organizational AI community, reaching 300+ professionals.
+    tags: [curriculum, onboarding, training, scale]
+
+# The location segment of the resume contact line, chosen by the
+# posting's location tier so an on-site or hybrid role sees the market
+# it is hiring for. Home is Chagrin Falls, OH; remote and anything
+# unmatched falls back to that.
+#
+# These state openness to relocation rather than residence in a city
+# Eric does not live in yet. "Boston, MA" on its own would read as a
+# current address and would not be true. Everything else in a generated
+# document traces to a claim id and gets checked; this line does not,
+# so it is written to be defensible on its face.
+#
+# Trailing "  •" is the separator before the phone number. Keep it.
+location_lines:
+  default:          "Chagrin Falls, OH  •  Open to remote or relocation  •"
+  remote_us:        "Chagrin Falls, OH  •  Open to remote or relocation  •"
+  cleveland:        "Chagrin Falls, OH  •  Open to remote  •"
+  boston:           "Chagrin Falls, OH  •  Open to relocation: Greater Boston  •"
+  bay_area:         "Chagrin Falls, OH  •  Open to relocation: SF Bay Area  •"
+  hybrid_northeast: "Chagrin Falls, OH  •  Open to relocation: NYC metro  •"
 
 # Header lines. Selected to echo the posting title. Never invented at
 # generation time: the closest match wins, and unknown falls back to

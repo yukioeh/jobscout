@@ -239,6 +239,21 @@ claims:
     text: "Japanese, fluent, JLPT Level 2. English native."
     tags: [language]
 
+  # ---------- Logistics ----------
+  # Not an accomplishment. It exists because postings state location as
+  # a hard requirement, and without it the scorer had nothing to cite
+  # and returned 0 on every on-site requirement, including markets Eric
+  # would actually move for. NYC is deliberately absent: it is
+  # referral-track, and the referral is the thing the scorer cannot see.
+  - id: LOC-BASE
+    text: >
+      Based in Chagrin Falls, Ohio, in the Eastern time zone. Open to
+      fully remote roles, and open to relocating for the right role to
+      Greater Boston or the San Francisco Bay Area.
+    metrics: []
+    attribution: personal
+    tags: [location, relocation, remote]
+
 # Gaps stated plainly. The scorer reads these and must score 0 where
 # they apply. They exist so the model cannot quietly fill them in.
 known_gaps:

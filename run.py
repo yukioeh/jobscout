@@ -19,7 +19,11 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+ROOT = Path(__file__).parent
+sys.path.insert(0, str(ROOT / "src"))
+
+from dotenv import load_dotenv
+load_dotenv(ROOT / ".env")
 
 import yaml
 
@@ -27,13 +31,12 @@ import store
 from ingest.sources import FETCHERS, rss
 from normalize import dedupe, normalize
 from prefilter import keep as prefilter_keep
-from schema import Level
-from score import CONFIG, score_posting
+from schema import Level, Tier
+from score import CONFIG, VALID_IDS, score_posting
 from tailor.cover_letter import generate as generate_letter
 from tailor.resume import tailor as tailor_resume
 from tailor.select import select
 
-ROOT = Path(__file__).parent
 SOURCES = yaml.safe_load((ROOT / "config" / "sources.yaml").read_text())
 GATED_TITLES = {Level.MANAGER, Level.SENIOR_MANAGER, Level.IC}
 
@@ -61,7 +64,7 @@ def collect() -> list:
 def gate(posting) -> str | None:
     """Hard stops, checked before any model call is spent."""
     if posting.level in GATED_TITLES:
-        return f"title at or below manager ({posting.level.value})"
+        return f"title below director standing ({posting.level.value})"
     if len(posting.raw_text) < 600:
         return "posting text too thin to score"
     body = posting.raw_text.lower()
@@ -79,12 +82,19 @@ def age_hours(posting) -> int | None:
 
 
 def tailor_for(posting, fit, tags) -> tuple[Path, Path]:
-    selection = select(tags, posting.title)
+    selection = select(tags, posting.title,
+                       posting.location_tier.value if posting.location_tier else "")
     stem = f"{posting.company}-{posting.title}".replace(" ", "")[:48]
     resume = tailor_resume(
         ROOT / "templates" / "EricHarvey-Resume-Master.docx",
         ROOT / "out" / f"EricHarvey-Resume-{stem}.docx", selection)
-    top = sorted(fit.requirement_scores, key=lambda r: -r.score)[:4]
+    # Only requirements backed by a real claim can fill a T-table cell.
+    # A requirement whose only citation is a known_gap has nothing to
+    # say on the right-hand side, and a score above zero already
+    # guarantees at least one real claim id.
+    citable = [r for r in fit.requirement_scores
+               if any(i in VALID_IDS for i in r.evidence_ids)]
+    top = sorted(citable, key=lambda r: -r.score)[:4]
     letter = generate_letter(
         ROOT / "templates" / "EricHarvey-CoverLetter-JPMC-MartechAI.docx",
         ROOT / "out" / f"EricHarvey-CoverLetter-{stem}.docx",
@@ -131,11 +141,22 @@ def main() -> None:
         spend += cost
         store.record_score(conn, posting.fingerprint(), fit=fit)
 
+        # Must-have coverage, kept separate from the blended total. The
+        # total mixes must_have with nice_to_have, so a role you match
+        # on every hard requirement and a role you half-match on
+        # everything can land on the same number. They are not the same
+        # bet: a must_have scoring 0 is the requirement most likely to
+        # screen you out before a human reads anything.
+        must = [r for r in fit.requirement_scores if r.requirement.tier == Tier.MUST_HAVE]
         item = {"total": fit.total, "requirement_match": fit.requirement_match,
                 "level_fit": fit.level_fit, "location_fit": fit.location_fit,
                 "company": posting.company, "title": posting.title, "url": posting.url,
                 "fingerprint": posting.fingerprint(),
                 "age_hours": age_hours(posting),
+                "must_total": len(must),
+                "must_strong": sum(1 for r in must if r.score >= 3),
+                "must_zero": sum(1 for r in must if r.score == 0),
+                "must_gaps": [r.requirement.text for r in must if r.score == 0][:3],
                 "why": "; ".join(r.reasoning for r in sorted(
                     fit.requirement_scores, key=lambda r: -r.score)[:2])}
 
@@ -149,7 +170,11 @@ def main() -> None:
     print(f"scoring spend this run: ${spend:.4f}")
     if args.dry_run:
         for i in sorted(alerts + digest, key=lambda x: -x["total"]):
-            print(f"  {i['total']:>5}  {i['company']} — {i['title']}")
+            cover = f"must-haves {i['must_strong']}/{i['must_total']}"
+            gaps = f", {i['must_zero']} with no evidence" if i["must_zero"] else ""
+            print(f"  {i['total']:>5}  [{cover}{gaps}]  {i['company']} — {i['title']}")
+            for gap in i.get("must_gaps", []):
+                print(f"            no evidence: {gap[:66]}")
             for path in i.get("attachments", []):
                 print(f"          {path}")
         return
