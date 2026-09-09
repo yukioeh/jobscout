@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS outcomes (
   fingerprint TEXT PRIMARY KEY, applied INTEGER DEFAULT 0, response TEXT, note TEXT
 );
 CREATE TABLE IF NOT EXISTS alerts (fingerprint TEXT PRIMARY KEY, sent_at TEXT);
+CREATE TABLE IF NOT EXISTS digested (fingerprint TEXT PRIMARY KEY, sent_at TEXT);
 """
 
 
@@ -74,3 +75,40 @@ def mark_alerted(conn, fingerprint: str) -> None:
     conn.execute("INSERT OR REPLACE INTO alerts VALUES (?,?)",
                  (fingerprint, datetime.now(timezone.utc).isoformat()))
     conn.commit()
+
+
+def mark_digested(conn, fingerprint: str) -> None:
+    conn.execute("INSERT OR REPLACE INTO digested VALUES (?,?)",
+                 (fingerprint, datetime.now(timezone.utc).isoformat()))
+    conn.commit()
+
+
+def pending_digest(conn, floor: float, ceiling: float) -> list:
+    """Everything scored into the digest band and not yet shown.
+
+    The digest used to be assembled from whatever the 17:30 run happened
+    to find in that one execution. Postings are discovered within an
+    hour or two of going up, so the hourly runs found nearly all of
+    them and the digest run found almost nothing: 60 to 79 scorers were
+    recorded and silently never surfaced. This reads them back out of
+    the database instead, so a role is shown once no matter which run
+    scored it.
+
+    Only the most recent score per posting counts, since re-scoring
+    appends a row rather than replacing one.
+    """
+    return conn.execute(
+        """
+        SELECT p.company, p.title, p.url, p.posted_date, p.fingerprint,
+               s.total, s.requirement_match, s.level_fit, s.location_fit, s.detail
+        FROM scores s
+        JOIN postings p ON p.fingerprint = s.fingerprint
+        WHERE s.scored_at = (SELECT MAX(scored_at) FROM scores x
+                             WHERE x.fingerprint = s.fingerprint)
+          AND s.total >= ? AND s.total < ?
+          AND s.fingerprint NOT IN (SELECT fingerprint FROM digested)
+          AND s.fingerprint NOT IN (SELECT fingerprint FROM alerts)
+        ORDER BY s.total DESC
+        """,
+        (floor, ceiling),
+    ).fetchall()

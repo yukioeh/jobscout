@@ -15,6 +15,7 @@ Nothing here submits an application. Drafts only, always.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -79,6 +80,32 @@ def age_hours(posting) -> int | None:
     if not posting.posted_date:
         return None
     return int((datetime.now(timezone.utc) - posting.posted_date).total_seconds() // 3600)
+
+
+def _digest_item(row) -> dict:
+    """Rebuild an email item from a stored posting and its Fit JSON."""
+    (company, title, url, posted_date, fingerprint,
+     total, requirement_match, level_fit, location_fit, detail) = row
+    fit = json.loads(detail) if detail else {"requirement_scores": []}
+    must = [r for r in fit["requirement_scores"]
+            if r["requirement"]["tier"] == Tier.MUST_HAVE.value]
+    age = None
+    if posted_date:
+        try:
+            age = int((datetime.now(timezone.utc)
+                       - datetime.fromisoformat(posted_date)).total_seconds() // 3600)
+        except ValueError:
+            age = None
+    return {"total": total, "requirement_match": requirement_match,
+            "level_fit": level_fit, "location_fit": location_fit,
+            "company": company, "title": title, "url": url,
+            "fingerprint": fingerprint, "age_hours": age,
+            "must_total": len(must),
+            "must_strong": sum(1 for r in must if r["score"] >= 3),
+            "must_zero": sum(1 for r in must if r["score"] == 0),
+            "must_gaps": [r["requirement"]["text"] for r in must if r["score"] == 0][:3],
+            "why": "; ".join(r["reasoning"] for r in sorted(
+                fit["requirement_scores"], key=lambda r: -r["score"])[:2])}
 
 
 def tailor_for(posting, fit, tags) -> tuple[Path, Path]:
@@ -180,9 +207,18 @@ def main() -> None:
         return
 
     import notify
-    if args.digest and digest:
-        notify.send(f"Job digest — {len(digest)} worth a look", digest,
-                    "Scored 60 to 79. No documents generated.")
+    if args.digest:
+        # Read the band back out of the database rather than using this
+        # run's batch. The hourly runs find nearly everything first, so
+        # a per-run digest showed almost nothing.
+        pending = [_digest_item(row) for row in store.pending_digest(
+            conn, CONFIG["thresholds"]["digest_floor"],
+            CONFIG["thresholds"]["tailor_and_alert"])]
+        if pending:
+            notify.send(f"Job digest — {len(pending)} worth a look", pending,
+                        "Scored 60 to 79. No documents generated.")
+            for item in pending:
+                store.mark_digested(conn, item["fingerprint"])
     for item in alerts:
         if store.already_alerted(conn, item["fingerprint"]):
             continue
