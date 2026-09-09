@@ -282,6 +282,8 @@ headers:
     tags: [martech, platform_portfolio, product, marketing]
   - text: "AI ADOPTION & ENABLEMENT LEADER"
     tags: [ai_adoption, change_management, adoption]
+  - text: "ENTERPRISE AI & BUSINESS AUTOMATION LEADER"
+    tags: [operating_model, platform_portfolio, automation, integration, governance]
 
 # Summary opening sentences. One per lead proof point, per the
 # tailoring guide: lead with whatever maps to their top requirement.
@@ -301,6 +303,15 @@ summary_leads:
     tags: [martech, platform_portfolio, integration, product, portfolio]
     text: >-
       Marketing technology and AI transformation leader with 15+ years running platform portfolios and AI programs in global, multi-region organizations. Integrated a video content delivery platform across a 17-system sales and marketing stack, lifting adoption 80%, built and deployed an AI content production system that cut asset creation time by 80%, and led the program that took generative AI to 85% adoption across a 6,000-person go-to-market organization.
+  # For roles that sit in IT or business operations rather than GTM: an
+  # enterprise automation function reporting to a CIO reads a sales
+  # enablement lead as the wrong candidate, however strong the record.
+  # Same claims, told as platform and operating model work.
+  - id: LEAD-ENTERPRISE
+    claim_ids: [SAP-IRIS-INTEGRATION, SAP-MICROSITES, SN-CONTENT-FACTORY, SN-CRM-AGENT-PROTOTYPE]
+    tags: [operating_model, platform_portfolio, integration, automation, governance, controls]
+    text: >-
+      Enterprise systems and AI transformation leader with 15+ years running platform portfolios and automation programs across global, multi-region organizations. At SAP, integrated a video content delivery platform across a 17-system sales and content stack, lifting adoption 80%, and consolidated regional delivery platforms from 13 to 3. At ServiceNow, built and deployed an AI content production system that cut asset creation time by 80%, and designed an in-CRM answer agent for a platform going to 7,000+ sellers.
   - id: LEAD-REVENUE
     claim_ids: [SN-DEMAND-AUTOMATION]
     tags: [revenue_impact, gtm, pipeline, sales]

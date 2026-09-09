@@ -46,6 +46,15 @@ OPENERS = {
         "that cut asset creation time by 80% and led the program that took AI adoption to 85% across "
         "6,000 people. The {role} role is that same work, and it is the work I want to be doing."
     ),
+    "LEAD-ENTERPRISE": (
+        "Enterprise automation works when it is built into how the business already runs, not "
+        "bolted alongside it. At SAP I integrated a video content delivery platform across a "
+        "17-system sales and content stack, lifting adoption 80%, and consolidated regional "
+        "delivery platforms from 13 to 3. At ServiceNow I built and deployed an AI content "
+        "production system that cut asset creation time by 80%, and designed an in-CRM answer "
+        "agent for a platform going to 7,000+ sellers. The {role} role is that same work, and it "
+        "is the work I want to be doing."
+    ),
     "LEAD-REVENUE": (
         "I lead enablement programs that move pipeline, not just attendance. At ServiceNow I directed "
         "the team that generated $76.3M in influenced pipeline and $45M in net annual contract value, "
