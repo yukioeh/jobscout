@@ -140,13 +140,36 @@ def _digest_item(row) -> dict:
                 if r["score"] >= 3 and r["evidence_ids"]][:3]}
 
 
+_USED_PATHS: set[Path] = set()
+
+
+def _doc_path(kind: str, company: str) -> Path:
+    """out/EricHarvey-Resume-Visa-0926.docx, or -CL- for the letter.
+
+    Company and month alone are not unique: two director roles at the
+    same company in the same month produce the same name. Documents are
+    written during the scoring loop and attached later, so an overwrite
+    would silently mail the same resume for both roles. Names claimed
+    earlier in this run get a suffix. Across runs the same posting
+    reclaims its own name, which is what you want on a re-score.
+    """
+    slug = re.sub(r"[^A-Za-z0-9]", "", company)[:24] or "Unknown"
+    stamp = datetime.now(timezone.utc).strftime("%m%y")
+    path = ROOT / "out" / f"EricHarvey-{kind}-{slug}-{stamp}.docx"
+    n = 2
+    while path in _USED_PATHS:
+        path = ROOT / "out" / f"EricHarvey-{kind}-{slug}-{stamp}-{n}.docx"
+        n += 1
+    _USED_PATHS.add(path)
+    return path
+
+
 def tailor_for(posting, fit, tags) -> tuple[Path, Path]:
     selection = select(tags, posting.title,
                        posting.location_tier.value if posting.location_tier else "")
-    stem = f"{posting.company}-{posting.title}".replace(" ", "")[:48]
     resume = tailor_resume(
         ROOT / "templates" / "EricHarvey-Resume-Master.docx",
-        ROOT / "out" / f"EricHarvey-Resume-{stem}.docx", selection)
+        _doc_path("Resume", posting.company), selection)
     # Only requirements backed by a real claim can fill a T-table cell.
     # A requirement whose only citation is a known_gap has nothing to
     # say on the right-hand side, and a score above zero already
@@ -161,7 +184,7 @@ def tailor_for(posting, fit, tags) -> tuple[Path, Path]:
     top = sorted(worth_arguing or citable, key=lambda r: -r.score)[:3]
     letter = generate_letter(
         ROOT / "templates" / "EricHarvey-CoverLetter-JPMC-MartechAI.docx",
-        ROOT / "out" / f"EricHarvey-CoverLetter-{stem}.docx",
+        _doc_path("CL", posting.company),
         team_name=f"{posting.company} Hiring Team",
         role_title=posting.title,
         lead_id=selection.summary_lead_id,
