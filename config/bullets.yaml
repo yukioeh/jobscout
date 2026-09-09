@@ -197,13 +197,13 @@ sap:
       Designed a digital enablement program and global badge curriculum at the SAP Academy for Customer Success, materially reducing time to productivity.
     tags: [onboarding, curriculum, scale, multi_region, training]
 
-  - id: SAP-B-PRESALES-TOOLS
-    in_master: false
-    claim_ids: [SAP-PRESALES-TOOLS]
-    label: "Cut time-to-demo by 75%"
-    body: >-
-      Built self-service mobile prototyping tools and demos for 700+ sales and presales representatives, cutting demo creation time 25% and time-to-demo 75%. Led creation of an internal app store distributing 500+ apps across 3,000+ devices.
-    tags: [self_serve, hands_on, enablement, playbook]
+  # SAP-PRESALES-TOOLS deliberately has no bench bullet. The master
+  # already carries that claim as a static bullet under Solution
+  # Advisor (2010-2013), and the sap bullet block this file manages is
+  # the 2013-2024 role. A bench bullet on that claim printed the same
+  # sentence twice on one page, under two different jobs. Checking
+  # bullets.yaml for unexpressed claims was not enough; the master
+  # expresses some of them outside the blocks the generator touches.
 
   - id: SAP-B-PORTFOLIO
     in_master: false
@@ -242,8 +242,12 @@ location_lines:
   # a person reads it. The move is real but not yet made, and the
   # cover letter closer is worded to commit to being on site rather
   # than to claim he already lives there.
-  boston:           "Brookline, MA  •  Open to remote  •"
-  bay_area:         "San Francisco, CA  •  Open to remote  •"
+  # No "Open to remote" on these two. They are only ever chosen for an
+  # on-site or hybrid role in that market, and telling a company that
+  # mandates four days on site that you would rather be remote argues
+  # against the application.
+  boston:           "Brookline, MA  •"
+  bay_area:         "San Francisco, CA  •"
   # NYC stays on the home address: it is referral-track, and a referral
   # makes the location conversation directly rather than on paper.
   hybrid_northeast: "Chagrin Falls, OH  •  Open to remote or relocation  •"
@@ -286,19 +290,19 @@ summary_leads:
     claim_ids: [SN-COACH-ADOPTION]
     tags: [ai_adoption, change_management, training, scale]
     text: >-
-      Enablement and AI transformation leader with 15+ years running global programs across multi-region organizations. At ServiceNow, led the program that took AI Sales Coach adoption to 85% across a 6,000-person go-to-market organization, directed the build of an AI content production system that cut enablement asset creation time by 80%, and directed the team generating $76.3M in influenced pipeline and $45M in net annual contract value.
+      Enablement and AI transformation leader with 15+ years running global programs across multi-region organizations. At ServiceNow, led the program that took AI Sales Coach adoption to 85% across a 6,000-person go-to-market organization, built and deployed an AI content production system that cut enablement asset creation time by 80%, and directed the team generating $76.3M in influenced pipeline and $45M in net annual contract value.
   - id: LEAD-SYSTEMS
     claim_ids: [SN-CONTENT-FACTORY]
     tags: [ai_systems, content_production, llm_workflow, hands_on, automation]
     text: >-
-      AI systems and enablement leader with 15+ years running global programs across multi-region organizations. At ServiceNow, directed the build of an AI content production system that cut enablement asset creation time by 80%, led the program that took AI Sales Coach adoption to 85% across a 6,000-person go-to-market organization, and directed the team generating $76.3M in influenced pipeline and $45M in net annual contract value.
+      AI systems and enablement leader with 15+ years running global programs across multi-region organizations. At ServiceNow, built and deployed an AI content production system that cut enablement asset creation time by 80%, led the program that took AI Sales Coach adoption to 85% across a 6,000-person go-to-market organization, and directed the team generating $76.3M in influenced pipeline and $45M in net annual contract value.
   - id: LEAD-PLATFORM
     claim_ids: [SAP-IRIS-INTEGRATION, SAP-MICROSITES]
     tags: [martech, platform_portfolio, integration, product, portfolio]
     text: >-
-      Marketing technology and AI transformation leader with 15+ years running platform portfolios and AI programs in global, multi-region organizations. Integrated a video content delivery platform across a 17-system sales and marketing stack, lifting adoption 80%, directed the build of an AI content production system that cut asset creation time by 80%, and led the program that took generative AI to 85% adoption across a 6,000-person go-to-market organization.
+      Marketing technology and AI transformation leader with 15+ years running platform portfolios and AI programs in global, multi-region organizations. Integrated a video content delivery platform across a 17-system sales and marketing stack, lifting adoption 80%, built and deployed an AI content production system that cut asset creation time by 80%, and led the program that took generative AI to 85% adoption across a 6,000-person go-to-market organization.
   - id: LEAD-REVENUE
     claim_ids: [SN-DEMAND-AUTOMATION]
     tags: [revenue_impact, gtm, pipeline, sales]
     text: >-
-      Enablement and AI transformation leader with 15+ years running global programs across multi-region organizations. At ServiceNow, directed the team generating $76.3M in influenced pipeline, 426 qualified opportunities, and $45M in net annual contract value, led the program that took AI Sales Coach adoption to 85% across a 6,000-person organization, and directed the build of an AI content production system that cut asset creation time by 80%.
+      Enablement and AI transformation leader with 15+ years running global programs across multi-region organizations. At ServiceNow, directed the team generating $76.3M in influenced pipeline, 426 qualified opportunities, and $45M in net annual contract value, led the program that took AI Sales Coach adoption to 85% across a 6,000-person organization, and built and deployed an AI content production system that cut asset creation time by 80%.

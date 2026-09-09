@@ -28,13 +28,13 @@ OPENERS = {
     "LEAD-ADOPTION": (
         "I lead enablement teams that build AI systems rather than just run AI training. At "
         "ServiceNow I led the AI Sales Coach enablement program that took adoption to 85% across a "
-        "6,000-person go-to-market organization, and directed the build of an AI content production "
+        "6,000-person go-to-market organization, and built and deployed an AI content production "
         "system that cut enablement asset creation time by 80%. The {role} role is that same work, "
         "and it is the work I want to be doing."
     ),
     "LEAD-SYSTEMS": (
         "I build the AI systems and lead the teams that deliver on top of them. At ServiceNow I "
-        "directed the build of an AI content production system that cut enablement asset creation "
+        "built and deployed an AI content production system that cut enablement asset creation "
         "time by 80%, with an automated review pass on its own output, and led the enablement "
         "program that took AI Sales Coach adoption to 85% across 6,000 sellers. The {role} role is "
         "that same work, and it is the work I want to be doing."
@@ -42,7 +42,7 @@ OPENERS = {
     "LEAD-PLATFORM": (
         "I lead platform portfolios and the AI programs that make them worth owning. At SAP I was "
         "business owner for IRIS and integrated it across a 17-system sales and content stack, "
-        "lifting adoption 80%. At ServiceNow I directed the build of an AI content production system "
+        "lifting adoption 80%. At ServiceNow I built and deployed an AI content production system "
         "that cut asset creation time by 80% and led the program that took AI adoption to 85% across "
         "6,000 people. The {role} role is that same work, and it is the work I want to be doing."
     ),
@@ -59,13 +59,6 @@ DEFAULT_TEAM_SENTENCE = (
     "as I did building myself. That is the operating model I would bring here."
 )
 
-# Home is Chagrin Falls, OH, in the Eastern time zone. These lines are
-# the one part of a generated document that does not trace to a claim
-# id, so they are written to be literally true. Two of them were not:
-# the Boston line put Eric in a city he does not live in, and the Bay
-# Area line described a move already under way. Openness to relocation
-# is the honest version of both, and it is what a hiring manager
-# actually needs to know.
 # Home is Chagrin Falls, OH, in the Eastern time zone. These lines are
 # the one part of a generated document that does not trace to a claim
 # id, so they are written to be literally true. For Boston and the Bay
@@ -99,13 +92,24 @@ def _sentences(text: str) -> list[str]:
 
 
 def trim(text: str, limit: int) -> str:
-    """Cut to the limit on a word boundary. No ellipsis: a cell that
-    trails off reads worse than one that simply stops."""
+    """Cut to the limit, ending somewhere a reader can stop.
+
+    A plain word-boundary cut leaves a cell reading "...with a" or
+    "measurably free up time and", which looks like the document
+    broke. So back up to the last clause boundary when that still
+    keeps most of the text, then close the sentence.
+    """
     text = " ".join(text.split())
     if len(text) <= limit:
         return text
     cut = text[:limit].rsplit(" ", 1)[0]
-    return cut.rstrip(" ,;:-")
+    boundary = max(cut.rfind(", "), cut.rfind("; "), cut.rfind(") "),
+                   cut.rfind(": "), cut.rfind(" ("))
+    if boundary > len(cut) * 0.4:
+        return cut[:boundary].rstrip(" ,;:-(") + "."
+    # No clean boundary to stop at. An ellipsis reads as deliberate
+    # abbreviation; a bare period on "...with a" reads as a defect.
+    return cut.rstrip(" ,;:-") + "..."
 
 
 def evidence_line(claim_ids: list[str], limit: int = 225) -> str:
@@ -154,15 +158,10 @@ def evidence_line(claim_ids: list[str], limit: int = 225) -> str:
     if not body:
         lead = claim_ids[0]
         cost = sum(len(m) + 2 for m in CLAIMS[lead].get("metrics", []))
-        cut = trim(" ".join(CLAIMS[lead]["text"].split()), max(60, limit - cost))
-        # Back up to the last clause boundary. A word-boundary cut can
-        # stop on "working with", and the metrics tail then reads as
-        # the end of that clause: "working with 80% lift in adoption",
-        # which is not a sentence and is not true.
-        boundary = max(cut.rfind(", "), cut.rfind("; "), cut.rfind(") "))
-        if boundary > len(cut) * 0.5:
-            cut = cut[:boundary]
-        body = cut.rstrip(" ,;:-") + "."
+        # trim() backs up to a clause boundary and closes the sentence,
+        # so the metrics tail cannot read as the end of a broken clause
+        # ("working with 80% lift in adoption").
+        body = trim(" ".join(CLAIMS[lead]["text"].split()), max(60, limit - cost))
         used = [lead]
 
     metrics = [m for cid in used for m in CLAIMS[cid].get("metrics", [])]
@@ -221,9 +220,11 @@ def generate(
     for row, (requirement, claim_ids) in zip(body_rows, pairs):
         cells = row.findall(f"{W}tc")
         # Pass one writes requirements at whatever length it likes
-        # (median 116 characters, up to 256). The left column is the
-        # employer's ask restated, not a transcript of it.
-        _write_cell(cells[0], trim(requirement, 120))
+        # (median 116 characters, up to 256). 150 leaves the typical
+        # one whole and trims only the outliers: a cap near the median
+        # cut half of them, and a requirement that stops mid-sentence
+        # reads as a broken document rather than a shortened one.
+        _write_cell(cells[0], trim(requirement, 150))
         _write_cell(cells[1], evidence_line(claim_ids))
     for row in body_rows[len(pairs):]:
         table.remove(row)
