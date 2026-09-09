@@ -237,9 +237,16 @@ location_lines:
   default:          "Chagrin Falls, OH  •  Open to remote or relocation  •"
   remote_us:        "Chagrin Falls, OH  •  Open to remote or relocation  •"
   cleveland:        "Chagrin Falls, OH  •  Open to remote  •"
-  boston:           "Chagrin Falls, OH  •  Open to relocation: Greater Boston  •"
-  bay_area:         "Chagrin Falls, OH  •  Open to relocation: SF Bay Area  •"
-  hybrid_northeast: "Chagrin Falls, OH  •  Open to relocation: NYC metro  •"
+  # Target-market address for the two markets Eric will move to, so a
+  # screener filtering on location does not drop the application before
+  # a person reads it. The move is real but not yet made, and the
+  # cover letter closer is worded to commit to being on site rather
+  # than to claim he already lives there.
+  boston:           "Brookline, MA  •  Open to remote  •"
+  bay_area:         "San Francisco, CA  •  Open to remote  •"
+  # NYC stays on the home address: it is referral-track, and a referral
+  # makes the location conversation directly rather than on paper.
+  hybrid_northeast: "Chagrin Falls, OH  •  Open to remote or relocation  •"
 
 # Header lines. Selected to echo the posting title. Never invented at
 # generation time: the closest match wins, and unknown falls back to

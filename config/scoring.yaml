@@ -87,6 +87,15 @@ dealbreakers:
   commission_only_or_unpaid: true
   contract_under_months: 6
   title_at_or_below_manager: true   # includes senior_manager
+  # Applicant count is the signal wanted here and it does not exist in
+  # any feed: rss.app carries the description, not LinkedIn's live
+  # counter, and reading that counter means scraping the job page,
+  # which is the thing the RSS route exists to avoid. Age is the
+  # available proxy, and it is the same answer this project already
+  # gives to competition: speed. A posting old enough to have collected
+  # a large pile is one a cold application rarely wins.
+  # Set to 0 to disable.
+  max_posting_age_hours: 336        # 14 days
   # Referral-track roles are out of scope for this scorer by design.
   # JPMorgan scored 65 on a cold rubric and that is the correct read of
   # the paper version. The referral is the thing the model cannot see,

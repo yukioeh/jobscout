@@ -73,6 +73,10 @@ def gate(posting) -> str | None:
         return "requires clearance"
     if "phd required" in body or "j.d. required" in body:
         return "requires a degree not held"
+    max_age = CONFIG["dealbreakers"].get("max_posting_age_hours", 0)
+    age = age_hours(posting)
+    if max_age and age is not None and age > max_age:
+        return f"posting is {age // 24}d old, past the {max_age // 24}d limit"
     return None
 
 
@@ -80,6 +84,21 @@ def age_hours(posting) -> int | None:
     if not posting.posted_date:
         return None
     return int((datetime.now(timezone.utc) - posting.posted_date).total_seconds() // 3600)
+
+
+def _breakdown(requirement_match, level_fit, location_fit) -> list[tuple]:
+    """How the total was built, as (label, score, weight, contribution).
+
+    The email showed the three dimensions but not what each was worth,
+    so a 72 and an 88 looked like the same kind of number. Location
+    alone swings 15 points between a remote role and an on-site one.
+    """
+    w = CONFIG["weights"]
+    return [
+        ("requirements", requirement_match, w["requirement_match"]),
+        ("level", level_fit, w["level_fit"]),
+        ("location", location_fit, w["location_fit"]),
+    ]
 
 
 def _digest_item(row) -> dict:
@@ -104,8 +123,11 @@ def _digest_item(row) -> dict:
             "must_strong": sum(1 for r in must if r["score"] >= 3),
             "must_zero": sum(1 for r in must if r["score"] == 0),
             "must_gaps": [r["requirement"]["text"] for r in must if r["score"] == 0][:3],
-            "why": "; ".join(r["reasoning"] for r in sorted(
-                fit["requirement_scores"], key=lambda r: -r["score"])[:2])}
+            "breakdown": _breakdown(requirement_match, level_fit, location_fit),
+            "fit_reasons": [
+                (r["requirement"]["text"], r["evidence_ids"])
+                for r in sorted(fit["requirement_scores"], key=lambda r: -r["score"])
+                if r["score"] >= 3 and r["evidence_ids"]][:3]}
 
 
 def tailor_for(posting, fit, tags) -> tuple[Path, Path]:
@@ -121,7 +143,7 @@ def tailor_for(posting, fit, tags) -> tuple[Path, Path]:
     # guarantees at least one real claim id.
     citable = [r for r in fit.requirement_scores
                if any(i in VALID_IDS for i in r.evidence_ids)]
-    top = sorted(citable, key=lambda r: -r.score)[:4]
+    top = sorted(citable, key=lambda r: -r.score)[:3]
     letter = generate_letter(
         ROOT / "templates" / "EricHarvey-CoverLetter-JPMC-MartechAI.docx",
         ROOT / "out" / f"EricHarvey-CoverLetter-{stem}.docx",
@@ -184,8 +206,11 @@ def main() -> None:
                 "must_strong": sum(1 for r in must if r.score >= 3),
                 "must_zero": sum(1 for r in must if r.score == 0),
                 "must_gaps": [r.requirement.text for r in must if r.score == 0][:3],
-                "why": "; ".join(r.reasoning for r in sorted(
-                    fit.requirement_scores, key=lambda r: -r.score)[:2])}
+                "breakdown": _breakdown(fit.requirement_match, fit.level_fit, fit.location_fit),
+                "fit_reasons": [
+                    (r.requirement.text, r.evidence_ids)
+                    for r in sorted(fit.requirement_scores, key=lambda r: -r.score)
+                    if r.score >= 3 and r.evidence_ids][:3]}
 
         if fit.total >= CONFIG["thresholds"]["tailor_and_alert"]:
             resume, letter = tailor_for(posting, fit, tags)

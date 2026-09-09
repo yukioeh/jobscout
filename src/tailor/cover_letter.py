@@ -66,10 +66,17 @@ DEFAULT_TEAM_SENTENCE = (
 # Area line described a move already under way. Openness to relocation
 # is the honest version of both, and it is what a hiring manager
 # actually needs to know.
+# Home is Chagrin Falls, OH, in the Eastern time zone. These lines are
+# the one part of a generated document that does not trace to a claim
+# id, so they are written to be literally true. For Boston and the Bay
+# Area the resume carries a target-market address, so these commit to
+# being on site rather than describing where Eric currently lives:
+# saying "open to relocating" underneath a Brookline address would
+# contradict the page.
 CLOSERS = {
     "remote_us": "I work from the Eastern time zone and am set up for a fully distributed team.",
-    "boston": "I am open to relocating to the Greater Boston area and can be on site as the role requires.",
-    "bay_area": "I am open to relocating to the Bay Area and can be on site as the role requires.",
+    "boston": "I can be on site in the Greater Boston area as the role requires.",
+    "bay_area": "I can be on site in the Bay Area as the role requires.",
     "cleveland": "I am in the Greater Cleveland area and can be on site as the role requires.",
     "hybrid_northeast": "I am open to relocating for this role and can be on site as it requires.",
     "other_us_hybrid": "I am open to relocating for this role and can be on site as it requires.",
@@ -91,7 +98,17 @@ def _sentences(text: str) -> list[str]:
     return out
 
 
-def evidence_line(claim_ids: list[str], limit: int = 300) -> str:
+def trim(text: str, limit: int) -> str:
+    """Cut to the limit on a word boundary. No ellipsis: a cell that
+    trails off reads worse than one that simply stops."""
+    text = " ".join(text.split())
+    if len(text) <= limit:
+        return text
+    cut = text[:limit].rsplit(" ", 1)[0]
+    return cut.rstrip(" ,;:-")
+
+
+def evidence_line(claim_ids: list[str], limit: int = 225) -> str:
     """Assemble the right-hand cell from claim text and metrics.
 
     Metrics are the point of the cell, so they are placed first in the
@@ -130,6 +147,24 @@ def evidence_line(claim_ids: list[str], limit: int = 300) -> str:
             used.append(cid)
             reserve += cost
 
+    # Whole-sentence trimming has nothing to fall back on when the
+    # first sentence alone exceeds the budget, and returned an empty
+    # cell. A trimmed sentence beats a blank column, so cut the leading
+    # claim to fit rather than saying nothing.
+    if not body:
+        lead = claim_ids[0]
+        cost = sum(len(m) + 2 for m in CLAIMS[lead].get("metrics", []))
+        cut = trim(" ".join(CLAIMS[lead]["text"].split()), max(60, limit - cost))
+        # Back up to the last clause boundary. A word-boundary cut can
+        # stop on "working with", and the metrics tail then reads as
+        # the end of that clause: "working with 80% lift in adoption",
+        # which is not a sentence and is not true.
+        boundary = max(cut.rfind(", "), cut.rfind("; "), cut.rfind(") "))
+        if boundary > len(cut) * 0.5:
+            cut = cut[:boundary]
+        body = cut.rstrip(" ,;:-") + "."
+        used = [lead]
+
     metrics = [m for cid in used for m in CLAIMS[cid].get("metrics", [])]
     tail = (" " + ", ".join(metrics) + ".") if metrics else ""
     return (body + tail).strip()
@@ -166,8 +201,8 @@ def generate(
     team_sentence: str | None = None,
     pairs: list[tuple[str, list[str]]],   # (requirement text, claim ids)
 ) -> Path:
-    if not 1 <= len(pairs) <= 4:
-        raise ValueError("The T-table holds one to four requirement pairs")
+    if not 1 <= len(pairs) <= 3:
+        raise ValueError("The T-table holds one to three requirement pairs")
 
     unpacked = unpack(template)
     merge_runs(unpacked)
@@ -185,7 +220,10 @@ def generate(
     body_rows = rows[1:]
     for row, (requirement, claim_ids) in zip(body_rows, pairs):
         cells = row.findall(f"{W}tc")
-        _write_cell(cells[0], requirement)
+        # Pass one writes requirements at whatever length it likes
+        # (median 116 characters, up to 256). The left column is the
+        # employer's ask restated, not a transcript of it.
+        _write_cell(cells[0], trim(requirement, 120))
         _write_cell(cells[1], evidence_line(claim_ids))
     for row in body_rows[len(pairs):]:
         table.remove(row)

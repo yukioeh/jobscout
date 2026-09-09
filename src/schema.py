@@ -66,9 +66,17 @@ class Posting:
 
         Deliberately excludes source and url, and normalizes company and
         title, because aggregators rewrite both in small ways.
+
+        Location is excluded too. An employer posting one req across six
+        metros gets six LinkedIn job ids, and including location made
+        those six separate postings: six scoring calls and six digest
+        rows for a single application decision, a quarter of all spend.
+        It is one job. normalize.dedupe() keeps the copy in the best
+        location, so a role open in both Boston and London still
+        surfaces as the Boston one.
         """
         norm = lambda s: "".join(c for c in s.lower() if c.isalnum())
-        basis = f"{norm(self.company)}|{norm(self.title)}|{norm(self.locations[0] if self.locations else '')}"
+        basis = f"{norm(self.company)}|{norm(self.title)}"
         return hashlib.sha256(basis.encode()).hexdigest()[:16]
 
 

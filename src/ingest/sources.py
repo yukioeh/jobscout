@@ -95,7 +95,7 @@ def rss(feed_url: str, label: str) -> list[Posting]:
             title=_title_from(e), company=_company_from(e),
             raw_text=_clean(e.get("summary", "")),
             first_seen=datetime.now(timezone.utc), posted_date=_parse(e.get("published")),
-            locations=[],
+            locations=_location_from(e),
         ))
     return out
 
@@ -121,6 +121,25 @@ def _company_from(entry) -> str:
         company = re.split(r"\s+[—-]\s+", company, maxsplit=1)[0]
         return company.strip()
     return entry.get("author", "unknown")
+
+
+def _location_from(entry) -> list[str]:
+    """The location the LinkedIn title carries, which _title_from strips.
+
+    Feed entries have no location field, so before this the only
+    location signal was the body, and a stray "Remote employees will be
+    considered" in an on-site Virginia posting read as fully remote.
+    The title states the real one in both shapes rss.app produces.
+    """
+    title = entry.get("title", "")
+    if " hiring " in title:
+        rest = title.split(" hiring ", 1)[1]
+        return [rest.rsplit(" in ", 1)[1].strip()] if " in " in rest else []
+    if " at " in title:
+        tail = title.rsplit(" at ", 1)[-1]
+        parts = re.split(r"\s+[—-]\s+", tail, maxsplit=1)
+        return [parts[1].strip()] if len(parts) > 1 else []
+    return []
 
 
 def _title_from(entry) -> str:

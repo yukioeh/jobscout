@@ -11,6 +11,7 @@ Conditional bullets stay out unless the posting's tags call for them.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import yaml
@@ -39,6 +40,30 @@ def _title_words(title: str) -> set[str]:
     return {w for w in cleaned.split() if w and w not in STOP_WORDS}
 
 
+def header_from_title(title: str) -> str | None:
+    """The posting's own title as the positioning line, or None.
+
+    This is the one place the generator writes a line that does not
+    trace to a claim id, and it is deliberate. The curated headers
+    matched on theme overlap, which put "MARTECH PRODUCT & AI
+    TRANSFORMATION LEADER" on an application for Data and AI
+    Capabilities Lead: close in theme, wrong on the page. Echoing the
+    employer's own words back is not a claim about experience, so
+    nothing here can overstate the record. The evidence underneath is
+    still bullets that each cite a claim.
+
+    Falls back to the curated list when a title will not work as a
+    header: empty, punctuation only, or long enough to wrap the line.
+    """
+    t = " ".join((title or "").split())
+    t = re.sub(r"\s*[-–—]\s*", " ", t)          # "Innovations- GTM" reads badly upper-cased
+    t = re.sub(r"[()\[\]]", "", t)
+    t = " ".join(t.split()).strip(" ,;:")
+    if not t or len(t) > 58 or not re.search(r"[A-Za-z]", t):
+        return None
+    return t.upper()
+
+
 def select(posting_tags: list[str], posting_title: str = "",
            location_tier: str = "") -> Selection:
     # The header is the highest-leverage edit on the page, so it is not
@@ -46,7 +71,8 @@ def select(posting_tags: list[str], posting_title: str = "",
     # ties, because the point of the line is to echo what they called
     # the job back at them.
     words = _title_words(posting_title)
-    header = max(
+    header_text = header_from_title(posting_title)
+    header = {"text": header_text} if header_text else max(
         LIBRARY["headers"],
         key=lambda h: (
             _overlap(h["tags"], posting_tags) + 2 * len(set(h["tags"]) & words),
