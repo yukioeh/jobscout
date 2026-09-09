@@ -248,6 +248,22 @@ location_lines:
   # makes the location conversation directly rather than on paper.
   hybrid_northeast: "Chagrin Falls, OH  •  Open to remote or relocation  •"
 
+# Requirements that never earn a row in the cover letter's T-table.
+#
+# The table holds three rows and fills them with the highest-scoring
+# requirements, so anything table-stakes scores a 4 and crowds out the
+# evidence that actually argues the case. "Fluency in English (spoken
+# and written)" took a slot on a Lovable letter, answered by the claim
+# that reads "Japanese, fluent, JLPT Level 2. English native." True,
+# and worth nothing to a reader.
+#
+# This is presentation only. The requirement is still scored, still
+# counts toward requirement_match, and still counts in must-have
+# coverage. It just does not get argued in the letter.
+cover_letter_skip:
+  - "(?i)\\benglish\\b.{0,40}\\b(fluen|proficien)"
+  - "(?i)\\b(fluen|proficien)\\w*\\b.{0,40}\\benglish\\b"
+
 # Header lines. Selected to echo the posting title. Never invented at
 # generation time: the closest match wins, and unknown falls back to
 # the master.

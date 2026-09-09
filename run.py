@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -86,6 +87,15 @@ def age_hours(posting) -> int | None:
     return int((datetime.now(timezone.utc) - posting.posted_date).total_seconds() // 3600)
 
 
+SKIP_IN_LETTER = [re.compile(p) for p in
+                  yaml.safe_load((ROOT / "config" / "bullets.yaml").read_text())
+                  .get("cover_letter_skip", [])]
+
+
+def _skipped_in_letter(text: str) -> bool:
+    return any(p.search(text) for p in SKIP_IN_LETTER)
+
+
 def _breakdown(requirement_match, level_fit, location_fit) -> list[tuple]:
     """How the total was built, as (label, score, weight, contribution).
 
@@ -143,7 +153,12 @@ def tailor_for(posting, fit, tags) -> tuple[Path, Path]:
     # guarantees at least one real claim id.
     citable = [r for r in fit.requirement_scores
                if any(i in VALID_IDS for i in r.evidence_ids)]
-    top = sorted(citable, key=lambda r: -r.score)[:3]
+    # Table stakes score a 4 and would take a row off something that
+    # argues the case. Scoring already counted them; the letter skips
+    # them. If the filter somehow empties the list, argue anything
+    # rather than fail to produce a letter.
+    worth_arguing = [r for r in citable if not _skipped_in_letter(r.requirement.text)]
+    top = sorted(worth_arguing or citable, key=lambda r: -r.score)[:3]
     letter = generate_letter(
         ROOT / "templates" / "EricHarvey-CoverLetter-JPMC-MartechAI.docx",
         ROOT / "out" / f"EricHarvey-CoverLetter-{stem}.docx",
