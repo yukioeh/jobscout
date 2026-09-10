@@ -122,6 +122,28 @@ dealbreakers:
   # NYC is deliberately absent. It is referral-track, and a referral
   # argues the location directly rather than on paper.
   locations_in_play: [remote_us, cleveland, boston, bay_area]
+  # Over-qualification is invisible to requirement scoring. Pass two
+  # asks whether the evidence supports the requirement, and 15 years
+  # trivially supports "0-2 years", so ZoomInfo's GTM Consultant II
+  # scored 82 on requirements and alerted at 80.6 with documents
+  # attached. Level could not save it either: the title read unknown
+  # and level is only 10% of the score.
+  #
+  # These have to be role-referential. A plain "early-career" match
+  # would have gated Visa's Director, Applied AI Transformation, where
+  # the phrase describes the analysts he would be coaching. Anything
+  # added here should be checked the same way, against the corpus,
+  # before being trusted.
+  early_career_markers:
+    - '\bthis is an early[- ]career\b'
+    - '\bearly[- ]career\s+(role|position|opportunity|opening|hire)\b'
+    - '\b0\s*[-–—]\s*[12]\s+years\s+of\s+(experience|relevant|professional|work)'
+    - '\brecent graduates?\b[^.]{0,60}\b(encouraged to apply|are welcome|welcome to apply)'
+    - '\b(entry[- ]level|new grad)\s+(role|position|opportunity|program)\b'
+    # Deliberately loose between the words: the posting that needed
+    # this reads "recent U.S. college / university graduate", which a
+    # tighter pattern could not span. One match across the corpus.
+    - '\brecent\b.{0,50}?\b(college|university)\b.{0,25}?\bgraduates?\b'
   # Referral-track roles are out of scope for this scorer by design.
   # JPMorgan scored 65 on a cold rubric and that is the correct read of
   # the paper version. The referral is the thing the model cannot see,

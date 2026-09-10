@@ -74,6 +74,10 @@ def gate(posting) -> str | None:
         return "requires clearance"
     if "phd required" in body or "j.d. required" in body:
         return "requires a degree not held"
+    for pattern in EARLY_CAREER:
+        hit = pattern.search(posting.raw_text)
+        if hit:
+            return f"early-career role ({hit.group(0).strip()[:40]!r})"
     in_play = CONFIG["dealbreakers"].get("locations_in_play")
     tier = posting.location_tier.value if posting.location_tier else ""
     if in_play and tier not in in_play:
@@ -90,6 +94,9 @@ def age_hours(posting) -> int | None:
         return None
     return int((datetime.now(timezone.utc) - posting.posted_date).total_seconds() // 3600)
 
+
+EARLY_CAREER = [re.compile(p, re.I) for p in
+                CONFIG["dealbreakers"].get("early_career_markers", [])]
 
 SKIP_IN_LETTER = [re.compile(p) for p in
                   yaml.safe_load((ROOT / "config" / "bullets.yaml").read_text())
