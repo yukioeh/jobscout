@@ -212,6 +212,13 @@ def level_key(level: str, has_reports: bool, title_level: str = "unknown") -> st
     """
     if level == "ic":
         return "director_ic" if title_level in DIRECTOR_PLUS else "ic"
+    # Pass one returning "unknown" is a read failure, not a finding.
+    # Defaulting it to 60 threw away a title that says so plainly:
+    # "Senior Director, GTM Product Marketing" scored 60 for level and
+    # landed in the digest at 77.2 instead of alerting at 84.2. When the
+    # title carries director-or-above standing, use it.
+    if level == "unknown" and title_level in DIRECTOR_PLUS:
+        level = title_level
     if level == "director" and not has_reports:
         return "director_ic"
     return level

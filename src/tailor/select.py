@@ -16,7 +16,7 @@ from pathlib import Path
 
 import yaml
 
-from .resume import LIBRARY, Selection
+from .resume import LIBRARY, ROLES, Selection
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 CLAIMS = yaml.safe_load((ROOT / "dossier" / "claims.yaml").read_text())
@@ -84,7 +84,7 @@ def select(posting_tags: list[str], posting_title: str = "",
     bullet_order: dict[str, list[str]] = {}
     swap_ins: list[tuple[str, str]] = []
 
-    for role in ("servicenow", "vector", "sap"):
+    for role in ROLES:
         entries = LIBRARY[role]
         in_master = [b for b in entries if b.get("in_master")]
         bench = [b for b in entries if not b.get("in_master") and _eligible(b, posting_tags)]
@@ -130,7 +130,7 @@ def select(posting_tags: list[str], posting_title: str = "",
 
 def trace(bullet_order: dict[str, list[str]]) -> None:
     """Every selected bullet must rest on a real claim. Fails loudly."""
-    index = {b["id"]: b for role in ("servicenow", "vector", "sap") for b in LIBRARY[role]}
+    index = {b["id"]: b for role in ROLES for b in LIBRARY[role]}
     for role, ids in bullet_order.items():
         for bid in ids:
             claim_ids = index[bid].get("claim_ids", [])

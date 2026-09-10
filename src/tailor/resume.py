@@ -34,7 +34,18 @@ W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 ROOT = Path(__file__).resolve().parent.parent.parent
 LIBRARY = yaml.safe_load((ROOT / "config" / "bullets.yaml").read_text())
 
-ROLE_ANCHORS = {"servicenow": "SERVICENOW", "vector": "VECTOR CREATIVE LABS", "sap": "SAP"}
+# Role key -> the text its block starts with in the master. Order
+# matters: sap_ai anchors on the SAP company line and takes the first
+# bullet block after it, so it has to be the block that comes first.
+# sap_digital anchors on its own role heading further down. Presales
+# (2010-2013) is deliberately absent: that block stays static.
+ROLE_ANCHORS = {
+    "servicenow": "SERVICENOW",
+    "vector": "VECTOR CREATIVE LABS",
+    "sap_ai": "SAP",
+    "sap_digital": "GLOBAL PROGRAM DIRECTOR, DIGITAL",
+}
+ROLES = tuple(ROLE_ANCHORS)
 
 
 class TailorError(Exception):
@@ -149,7 +160,7 @@ def tailor(master: Path, out: Path, selection: Selection) -> Path:
     _set_runs(summary_p, [lead["text"].strip()])
 
     # 3. bullets: reorder in place, writing the chosen bullet into each slot
-    index = {b["id"]: b for role in ("servicenow", "vector", "sap") for b in LIBRARY[role]}
+    index = {b["id"]: b for role in ROLES for b in LIBRARY[role]}
     for role, order in selection.bullet_order.items():
         slots = _bullets_for(body, ROLE_ANCHORS[role])
         if len(order) != len(slots):

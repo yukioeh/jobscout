@@ -74,6 +74,10 @@ def gate(posting) -> str | None:
         return "requires clearance"
     if "phd required" in body or "j.d. required" in body:
         return "requires a degree not held"
+    in_play = CONFIG["dealbreakers"].get("locations_in_play")
+    tier = posting.location_tier.value if posting.location_tier else ""
+    if in_play and tier not in in_play:
+        return f"location not in play ({tier or 'unknown'})"
     max_age = CONFIG["dealbreakers"].get("max_posting_age_hours", 0)
     age = age_hours(posting)
     if max_age and age is not None and age > max_age:

@@ -47,11 +47,26 @@ scored low, because no requirement match should rescue a step
 backwards. This corrected an earlier rubric that scored an IC role at 0
 and buried the highest-matching posting in the set.
 
-**Location never zeroes a role.** Ranked remote, Bay Area, Cleveland,
-Boston, then hybrid Northeast and down. Tokyo is commented out in
-`config/scoring.yaml` on purpose: it is his top location overall but a
-separate workstream, agency-led, gated on visa decisions. Do not
-uncomment it without being asked.
+**Location is a gate, not a score.** Reversed 2026-09-09, replacing
+"location never zeroes a role." Scored as a dimension it behaved as a
+near-binary: the four markets in play all landed 90 to 100, everything
+else 10 to 55, and it produced 29% of the total spread on a 20% weight
+while requirement match produced 53% on 60%. The score was largely
+measuring whether he would move there. Dropping its weight to fix that
+let a Wisconsin role and an NYC one outrank Boston and Bay Area ones,
+so weight was never the lever.
+
+`dealbreakers.locations_in_play` now holds remote, Cleveland, Boston
+and the Bay Area; anything else is gated before a model call. What
+remains in `location.tiers` is a small preference among acceptable
+markets: remote and Cleveland at 100 because neither needs a move,
+Boston and the Bay Area at 90. At a 10% weight that is about a point,
+which is meant to break ties and nothing more.
+
+NYC is gated. It is referral-track, and a referral argues the location
+directly. Tokyo stays commented out in `config/scoring.yaml`: his top
+location overall, but a separate workstream, agency-led, gated on visa
+decisions. Do not uncomment it without being asked.
 
 **Fit and competition are separate facts.** Remote scores 100 despite
 drawing heavy applicant volume. The answer to volume is speed, surfaced

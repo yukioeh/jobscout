@@ -140,23 +140,11 @@ vector:
       Built agent workflows for lead scoring and personalized outreach at a global consulting firm using Make.com and n8n. Separately turned a static marketing PDF into a video, 50 social graphics, and a full set of SDR, AE, and social activation assets, every piece generated and assembled through AI workflows.
     tags: [automation, hands_on, llm_workflow, integration]
 
-sap:
-  - id: SAP-B-IRIS-OWN
-    in_master: true
-    claim_ids: [SAP-IRIS-OWNERSHIP]
-    label: "Influenced €7.58B in total contract value"
-    body: >-
-      Served as business owner for IRIS, SAP’s video content delivery platform, co-developed with Kaltura: defined capability requirements, prioritized what shipped against GTM needs, and drove adoption to 380,000+ video messages delivered across 22,000 opportunities.
-    tags: [platform_ownership, roadmap, prioritization, vendor_partnership, portfolio]
-
-  - id: SAP-B-IRIS-INT
-    in_master: true
-    claim_ids: [SAP-IRIS-INTEGRATION]
-    label: "Lifted platform adoption 80%"
-    body: >-
-      Integrated IRIS across 17 sales and content systems (Adobe Experience Manager, Seismic, Highspot, Outreach.io, 6sense, Sprinklr, Consensus), working with martech and IT so content flowed between tools. Cut content discovery time by 25%.
-    tags: [martech, integration, interoperability, platform_portfolio, tooling]
-
+# SAP is two managed blocks now, matching the master and the periods in
+# claims.yaml. 2018-2024 is AI Enablement & Sales Readiness; 2013-2018
+# is Digital & Virtual Experience. Presales (2010-2013) stays static in
+# the master and is not managed here.
+sap_ai:
   - id: SAP-B-AI-COMMUNITY
     in_master: true
     claim_ids: [SAP-AI-COMMUNITY]
@@ -180,14 +168,6 @@ sap:
     body: >-
       Secured budget for centralized global programs by building the business case with regional leadership across five regions. Led multi-million-euro vendor selection and contract negotiation.
     tags: [business_case, roi, financial_discipline, vendor_management, influence_without_authority]
-
-  - id: SAP-B-STUDIOS
-    in_master: true
-    claim_ids: [SAP-STUDIOS]
-    label: "Saved €14M annually"
-    body: >-
-      Defined and executed the strategy for a worldwide network of 88 virtual studios delivering 115,000 hours of virtual presentations, establishing a new "Digital Hubs" organization.
-    tags: [scale, org_design, cost_savings, budget, operating_model]
 
   - id: SAP-B-ONBOARDING
     in_master: true
@@ -220,6 +200,42 @@ sap:
     body: >-
       Designed a digital enablement program and global badge curriculum for 2,400+ new hires across 65+ countries at the SAP Academy for Customer Success. Also led the training curriculum and the 75-prompt self-serve catalog behind SAP's cross-organizational AI community, reaching 300+ professionals.
     tags: [curriculum, onboarding, training, scale]
+
+# 2013-2018, Digital & Virtual Experience: the platform and studio era.
+# Three slots in the master.
+sap_digital:
+  - id: SAP-B-IRIS-OWN
+    in_master: true
+    claim_ids: [SAP-IRIS-OWNERSHIP]
+    label: "Influenced €7.58B in total contract value"
+    body: >-
+      Served as business owner for IRIS, SAP’s video content delivery platform, co-developed with Kaltura: defined capability requirements, prioritized what shipped against GTM needs, and drove adoption to 380,000+ video messages delivered across 22,000 opportunities.
+    tags: [platform_portfolio, roadmap, product, governance]
+
+  - id: SAP-B-IRIS-INT
+    in_master: true
+    claim_ids: [SAP-IRIS-INTEGRATION]
+    label: "Lifted platform adoption 80%"
+    body: >-
+      Integrated IRIS across 17 sales and content systems (Adobe Experience Manager, Seismic, Highspot, Outreach.io, 6sense, Sprinklr, Consensus), working with martech and IT so content flowed between tools. Cut content discovery time by 25%.
+    tags: [martech, integration, platform_portfolio, operating_model]
+
+  - id: SAP-B-STUDIOS
+    in_master: true
+    claim_ids: [SAP-STUDIOS]
+    label: "Saved €14M annually"
+    body: >-
+      Defined and executed the strategy for a worldwide network of 88 virtual studios delivering 115,000 hours of virtual presentations, establishing a new "Digital Hubs" organization.
+    tags: [scale, operating_model, roi, multi_region]
+
+  # Bench for this block.
+  - id: SAP-B-IRIS-STACK
+    in_master: false
+    claim_ids: [SAP-IRIS-INTEGRATION, SAP-IRIS-OWNERSHIP]
+    label: "Owned a platform and the 17-system stack around it"
+    body: >-
+      Owned IRIS as its business partner, deciding what shipped against GTM needs, and integrated it across 17 sales and content systems so content moved between tools rather than sitting in a repository. Adoption rose 80% and content discovery time fell 25%.
+    tags: [platform_portfolio, integration, product, martech, operating_model]
 
 # The location segment of the resume contact line, chosen by the
 # posting's location tier so an on-site or hybrid role sees the market

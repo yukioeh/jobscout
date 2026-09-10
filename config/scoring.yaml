@@ -40,12 +40,24 @@ location:
   # both open on relocation and are held equal. NYC stays low on
   # purpose: it is referral-track, and the referral is the thing this
   # scorer cannot see.
+  # Location turned out to be close to binary in practice: a market is
+  # in play or it is not, and the in-play ones all scored 90 to 100.
+  # Scored as a dimension it carried 29% of the total spread on a 20%
+  # weight, because its raw variance dwarfed everything else, and it
+  # was really measuring "would he move there" rather than fit. It is
+  # a gate now (dealbreakers.locations_in_play), and what remains here
+  # is a small preference among markets that are all acceptable.
+  #
+  # Remote and Cleveland edge the other two: neither needs a move.
+  # At a 10% weight the gap between them is about one point, which is
+  # the intended size. It breaks ties, it does not decide anything.
   tiers:
     remote_us: 100
-    cleveland: 95            # home, no relocation
+    cleveland: 100           # home, no relocation
     boston: 90               # open to relocation
     bay_area: 90             # open to relocation
-    hybrid_northeast: 55     # NYC / Jersey City / Philadelphia metro
+    # Gated, not scored. Values kept only so a tier is never missing.
+    hybrid_northeast: 55     # NYC, referral-track
     other_us_hybrid: 40
     other_us_onsite: 25
     international: 10
@@ -59,10 +71,16 @@ competition_signals:
   surface_posting_age: true
   flag_stale_after_hours: 72
 
+# Requirement match carried 60% of the weight but produced only 53% of
+# the real spread, while location produced 29% on a 20% weight. Level
+# barely varies once the gate has run: it is ~100 for anything that
+# gets through, so it was mostly a constant diluting the one dimension
+# that actually discriminates. With both now gated rather than scored,
+# the weights say what the score is for.
 weights:
-  requirement_match: 0.60
-  level_fit: 0.20
-  location_fit: 0.20
+  requirement_match: 0.80
+  level_fit: 0.10
+  location_fit: 0.10
 
 # Requirement-level weighting assigned by the first pass.
 requirement_tiers:
@@ -96,6 +114,14 @@ dealbreakers:
   # a large pile is one a cold application rarely wins.
   # Set to 0 to disable.
   max_posting_age_hours: 336        # 14 days
+  # Markets in play. Anything else is gated before a model call rather
+  # than scored low, which reverses the earlier "location never zeroes
+  # a role" rule: scoring it low did not work, because reducing the
+  # weight enough to stop location dominating the spread also let
+  # Wisconsin and NYC roles outrank Boston and Bay Area ones.
+  # NYC is deliberately absent. It is referral-track, and a referral
+  # argues the location directly rather than on paper.
+  locations_in_play: [remote_us, cleveland, boston, bay_area]
   # Referral-track roles are out of scope for this scorer by design.
   # JPMorgan scored 65 on a cold rubric and that is the correct read of
   # the paper version. The referral is the thing the model cannot see,
