@@ -74,6 +74,10 @@ def gate(posting) -> str | None:
         return "requires clearance"
     if "phd required" in body or "j.d. required" in body:
         return "requires a degree not held"
+    floor = CONFIG["dealbreakers"].get("salary_floor", 0)
+    top = advertised_top(posting.raw_text) if floor else None
+    if top is not None and top < floor:
+        return f"advertised pay tops out at ${top:,.0f}, below ${floor:,.0f}"
     for pattern in EARLY_CAREER:
         hit = pattern.search(posting.raw_text)
         if hit:
@@ -97,6 +101,29 @@ def age_hours(posting) -> int | None:
 
 EARLY_CAREER = [re.compile(p, re.I) for p in
                 CONFIG["dealbreakers"].get("early_career_markers", [])]
+
+# "$180,000", "$180K", "$180.5k". Bare numbers are ignored: a posting
+# saying "manages a 250,000 person org" is not quoting a salary.
+MONEY = re.compile(r"\$\s?(\d{1,3}(?:,\d{3})+|\d{2,3}(?:\.\d)?\s?[kK]\b)")
+
+
+def advertised_top(raw_text: str) -> float | None:
+    """The top of the advertised salary band, or None if it says nothing.
+
+    Only figures that could plausibly be an annual salary count. The
+    largest dollar figure in one posting was a $10,000 fertility
+    benefit, and hourly rates would read as wildly below any floor
+    while annualising above it. Both sit outside the window, and a
+    posting with nothing in the window is left alone rather than
+    guessed at.
+    """
+    found = []
+    for match in MONEY.finditer(raw_text or ""):
+        value = match.group(1).replace(",", "").strip()
+        amount = float(value[:-1].strip()) * 1000 if value[-1] in "kK" else float(value)
+        if 40_000 <= amount <= 2_000_000:
+            found.append(amount)
+    return max(found) if found else None
 
 SKIP_IN_LETTER = [re.compile(p) for p in
                   yaml.safe_load((ROOT / "config" / "bullets.yaml").read_text())

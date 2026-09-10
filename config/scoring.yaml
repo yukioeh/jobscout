@@ -134,6 +134,18 @@ dealbreakers:
   # the phrase describes the analysts he would be coaching. Anything
   # added here should be checked the same way, against the corpus,
   # before being trusted.
+  # Compared against the TOP of the advertised band, so it only fires
+  # when even the best case is below the floor. A posting that
+  # advertises nothing parseable is never gated: 55 of 144 scored
+  # postings say nothing about pay, and guessing from silence would
+  # throw away more than it caught.
+  #
+  # Only figures between $40k and $2M count as salary. Benefits lines
+  # are the reason: one posting's largest dollar figure was a $10,000
+  # fertility HRA, and hourly rates ($45/hr) would read as far below
+  # the floor while annualising well above it. Both fall outside the
+  # window and leave the posting ungated.
+  salary_floor: 150000
   early_career_markers:
     - '\bthis is an early[- ]career\b'
     - '\bearly[- ]career\s+(role|position|opportunity|opening|hire)\b'
