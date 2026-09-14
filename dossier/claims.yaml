@@ -235,6 +235,22 @@ claims:
       Leaders; Databricks Fundamentals.
     tags: [certification, ai, change_management]
 
+  - id: CRED-BA
+    text: "BA, Communications, Beloit College."
+    tags: [education]
+
+  - id: CRED-MEDDICC
+    text: >
+      Completed the MEDDICC module in ServiceNow University, built by
+      the ServiceNow enablement team.
+    metrics: []
+    attribution: personal
+    tags: [sales, methodology, enablement, training]
+    caution: >
+      Course completion, not a certification. Never write MEDDICC
+      certified, MEDDICC practitioner, or "deep fluency in MEDDICC". A
+      posting asking for certification scores 0 against this.
+
   - id: CRED-JAPANESE
     text: "Japanese, fluent, JLPT Level 2. English native."
     tags: [language]
