@@ -43,9 +43,20 @@ def _coverage(item: dict) -> str:
             f"<b>{zero} with no evidence</b></div>{gaps}")
 
 
+# Location is gated, not scored, so the alert states the market plainly
+# and leaves the choice among acceptable ones to Eric.
+MARKETS = {"remote_us": "Remote (US)", "boston": "Boston",
+           "bay_area": "SF Bay Area", "cleveland": "Greater Cleveland"}
+
+
+def _market(item: dict) -> str:
+    tier = item.get("location") or ""
+    return MARKETS.get(tier, tier.replace("_", " ") if tier else "location unknown")
+
+
 def _plain(item: dict) -> str:
     """Plain-text fallback body. Same facts, no markup."""
-    line = f"{item['total']}  {item['company']} — {item['title']}"
+    line = f"{item['total']}  {item['company']} — {item['title']}\n{_market(item)}"
     for label, score, weight in item.get("breakdown") or []:
         line += f"\n  {label:14} {score:>5g} x {int(weight*100):>2}% = {score*weight:>5.1f}"
     if item.get("must_total"):
@@ -103,7 +114,7 @@ def _row(item: dict) -> str:
     return f"""
     <tr><td style="padding:18px 0;border-bottom:1px solid #e5e5e5">
       <div style="font-weight:600;font-size:16px">{item['company']} — {item['title']}</div>
-      <div style="color:#666;font-size:12px;margin-top:2px">{age}{stale}</div>
+      <div style="color:#666;font-size:12px;margin-top:2px"><b>{_market(item)}</b> &middot; {age}{stale}</div>
       {_score_table(item)}
       {_coverage(item)}
       {_why_fits(item)}

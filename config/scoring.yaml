@@ -77,10 +77,16 @@ competition_signals:
 # gets through, so it was mostly a constant diluting the one dimension
 # that actually discriminates. With both now gated rather than scored,
 # the weights say what the score is for.
+# Location is not scored at all now. It is a gate, and among the four
+# markets that pass it the choice is Eric's to make, not the score's:
+# whether Boston beats remote for a given role depends on things the
+# model cannot see. Carrying it at 10% was adding a near-constant to
+# every in-play posting and compressing the one dimension that
+# discriminates. The tier still travels with the alert as information.
 weights:
-  requirement_match: 0.80
+  requirement_match: 0.90
   level_fit: 0.10
-  location_fit: 0.10
+  location_fit: 0.0
 
 # Requirement-level weighting assigned by the first pass.
 requirement_tiers:
@@ -164,4 +170,12 @@ dealbreakers:
 thresholds:
   tailor_and_alert: 80        # generate documents, send immediate email
   digest_floor: 60            # appears in the daily digest, no documents
+  # Pass two scores the same requirements differently run to run:
+  # measured at stdev 1.8 over six runs on one fixed requirement set,
+  # a 4.4 point range. That only changes an outcome near the alert
+  # line, where a real 79 can print 82 and a real 81 can print 78.
+  # Inside this band the posting is scored twice more and the median
+  # is taken, which costs about a cent and settles the coin flip.
+  # Roughly 8% of postings land in it. Set to 0 to disable.
+  confirmation_band: 4.0
   # below digest_floor: logged only, never surfaced

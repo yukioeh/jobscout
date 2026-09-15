@@ -231,6 +231,35 @@ def score_posting(posting: Posting) -> tuple[Fit, list[str], float]:
         raise ValueError("Posting too thin to score")
 
     scores, u2 = score_requirements(reqs, tags)
+    passes = [(roll_up(scores), scores)]
+    usages = [u2]
+
+    # A borderline score is worth confirming. Pass two returns a
+    # different number for the same requirements run to run (stdev 1.8,
+    # 4.4 point range over six runs), which only matters near the alert
+    # line: a real 79 prints 82 and generates documents, a real 81
+    # prints 78 and goes to the digest. Re-scoring twice and taking the
+    # median settles it for about a cent.
+    #
+    # Only pass two repeats. Pass one is stable in shape -- 12 to 13
+    # requirements, 10 must_have, every run -- and re-extracting would
+    # produce a different question set rather than a second opinion on
+    # the same one.
+    band = CONFIG["thresholds"].get("confirmation_band", 0)
+    if band:
+        w = CONFIG["weights"]
+        provisional = (passes[0][0] * w["requirement_match"]
+                       + float(CONFIG["candidate"]["level_fit"].get(
+                           level_key(level, posting.has_direct_reports,
+                                     posting.level.value if posting.level else "unknown"), 60))
+                       * w["level_fit"])
+        if abs(provisional - CONFIG["thresholds"]["tailor_and_alert"]) <= band:
+            for _ in range(2):
+                again, u = score_requirements(reqs, tags)
+                passes.append((roll_up(again), again))
+                usages.append(u)
+            passes.sort(key=lambda p: p[0])
+            scores = passes[len(passes) // 2][1]      # the median run's detail
 
     requirement_match = roll_up(scores)
     level_fit = float(CONFIG["candidate"]["level_fit"].get(
@@ -244,8 +273,10 @@ def score_posting(posting: Posting) -> tuple[Fit, list[str], float]:
                   + level_fit * w["level_fit"]
                   + location_fit * w["location_fit"], 1)
 
+    # Every pass-two call counts, including the confirmation re-runs.
+    rate2 = RATES.get(PASS2.split(":", 1)[-1], (0, 0))
     cost = (u1.cost(RATES.get(PASS1.split(":", 1)[-1], (0, 0)))
-            + u2.cost(RATES.get(PASS2.split(":", 1)[-1], (0, 0))))
+            + sum(u.cost(rate2) for u in usages))
 
     fit = Fit(
         posting_fingerprint=posting.fingerprint(),

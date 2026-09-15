@@ -142,16 +142,21 @@ def _breakdown(requirement_match, level_fit, location_fit) -> list[tuple]:
     alone swings 15 points between a remote role and an on-site one.
     """
     w = CONFIG["weights"]
-    return [
+    rows = [
         ("requirements", requirement_match, w["requirement_match"]),
         ("level", level_fit, w["level_fit"]),
         ("location", location_fit, w["location_fit"]),
     ]
+    # A dimension carrying no weight is not part of the score and does
+    # not belong in the arithmetic. Location travels with the alert as
+    # a plain label instead, because which acceptable market to apply
+    # to is Eric's call.
+    return [r for r in rows if r[2]]
 
 
 def _digest_item(row) -> dict:
     """Rebuild an email item from a stored posting and its Fit JSON."""
-    (company, title, url, posted_date, fingerprint,
+    (company, title, url, posted_date, fingerprint, location_tier,
      total, requirement_match, level_fit, location_fit, detail) = row
     fit = json.loads(detail) if detail else {"requirement_scores": []}
     must = [r for r in fit["requirement_scores"]
@@ -171,6 +176,7 @@ def _digest_item(row) -> dict:
             "must_strong": sum(1 for r in must if r["score"] >= 3),
             "must_zero": sum(1 for r in must if r["score"] == 0),
             "must_gaps": [r["requirement"]["text"] for r in must if r["score"] == 0][:3],
+            "location": location_tier or "",
             "breakdown": _breakdown(requirement_match, level_fit, location_fit),
             "fit_reasons": [
                 (r["requirement"]["text"], r["evidence_ids"])
@@ -282,6 +288,7 @@ def main() -> None:
                 "must_strong": sum(1 for r in must if r.score >= 3),
                 "must_zero": sum(1 for r in must if r.score == 0),
                 "must_gaps": [r.requirement.text for r in must if r.score == 0][:3],
+                "location": posting.location_tier.value if posting.location_tier else "",
                 "breakdown": _breakdown(fit.requirement_match, fit.level_fit, fit.location_fit),
                 "fit_reasons": [
                     (r.requirement.text, r.evidence_ids)
