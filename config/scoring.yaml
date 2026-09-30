@@ -179,3 +179,19 @@ thresholds:
   # Roughly 8% of postings land in it. Set to 0 to disable.
   confirmation_band: 4.0
   # below digest_floor: logged only, never surfaced
+
+# TypeSafe Jev. Modes are off | shadow | on. In shadow it is called and
+# logged to data/shadow.jsonl but never changes a decision; compare with
+# eval/shadow_report.py before turning anything on.
+#   early_career  replaces the early_career_markers regexes when on. The
+#                 regex would have gated Visa for saying the role coaches
+#                 early-career analysts.
+#   pass_two      replaces the Flash evidence scoring when on. Measured on
+#                 103 hand-scored requirements: same error as Flash, about
+#                 6x less run-to-run variance, ~$0.0002 a posting. The
+#                 open question is generosity on low scores (n=7).
+jev:
+  model: jev-1.13.0            # pinned; jev-latest moves under you
+  early_career: shadow
+  early_career_threshold: 0.8
+  pass_two: shadow

@@ -29,6 +29,7 @@ load_dotenv(ROOT / ".env")
 
 import yaml
 
+import jev
 import store
 from ingest.sources import FETCHERS, rss
 from normalize import dedupe, normalize
@@ -78,10 +79,7 @@ def gate(posting) -> str | None:
     top = advertised_top(posting.raw_text) if floor else None
     if top is not None and top < floor:
         return f"advertised pay tops out at ${top:,.0f}, below ${floor:,.0f}"
-    for pattern in EARLY_CAREER:
-        hit = pattern.search(posting.raw_text)
-        if hit:
-            return f"early-career role ({hit.group(0).strip()[:40]!r})"
+    regex_hit = next((m for m in (p.search(posting.raw_text) for p in EARLY_CAREER) if m), None)
     in_play = CONFIG["dealbreakers"].get("locations_in_play")
     tier = posting.location_tier.value if posting.location_tier else ""
     if in_play and tier not in in_play:
@@ -90,6 +88,22 @@ def gate(posting) -> str | None:
     age = age_hours(posting)
     if max_age and age is not None and age > max_age:
         return f"posting is {age // 24}d old, past the {max_age // 24}d limit"
+
+    # Last, so the call is only spent on postings that would otherwise be
+    # scored (plus the ones the regex would have stopped).
+    jmode = jev.mode(CONFIG, "early_career")
+    if jmode != "off":
+        p_early = jev.early_career(CONFIG, posting.raw_text)
+        if p_early is not None:
+            limit = CONFIG["jev"].get("early_career_threshold", 0.8)
+            jev.log("early_career", title=posting.title, company=posting.company,
+                    regex=bool(regex_hit), jev=round(p_early, 3), threshold=limit)
+            if jmode == "on":
+                if p_early >= limit:
+                    return f"early-career role (jev {p_early:.2f})"
+                return None
+    if regex_hit:
+        return f"early-career role ({regex_hit.group(0).strip()[:40]!r})"
     return None
 
 

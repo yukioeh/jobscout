@@ -22,6 +22,7 @@ from pathlib import Path
 
 import yaml
 
+import jev
 from llm import RATES, Usage, complete, parse_json
 from schema import Fit, Posting, Requirement, RequirementScore, Tier
 
@@ -262,6 +263,28 @@ def score_posting(posting: Posting) -> tuple[Fit, list[str], float]:
             scores = passes[len(passes) // 2][1]      # the median run's detail
 
     requirement_match = roll_up(scores)
+
+    # Jev evidence scoring, shadowed or live. It returns a rating and
+    # no claim ids, so it cannot satisfy "a score above zero must cite a
+    # real id" on its own. When live, its number only counts where the
+    # LLM pass cited a real claim; everywhere else stays 0. Any failure
+    # leaves the LLM result untouched.
+    jmode = jev.mode(CONFIG, "pass_two")
+    if jmode != "off":
+        rated = jev.score_requirements(CONFIG, reqs, eligible_claims(tags), CLAIMS["known_gaps"])
+        if rated is not None and len(rated) == len(scores):
+            t = CONFIG["requirement_tiers"]
+            cited = [any(i in VALID_IDS for i in rs.evidence_ids) for rs in scores]
+            capped = [v if c else 0.0 for v, c in zip(rated, cited)]
+            weights = [t[r.tier.value] for r in reqs]
+            jev_match = round(100 * sum(v * w for v, w in zip(capped, weights))
+                              / (4 * sum(weights)), 1)
+            jev.log("pass_two", company=posting.company, title=posting.title,
+                    llm=requirement_match, jev=jev_match,
+                    llm_scores=[rs.score for rs in scores],
+                    jev_scores=[round(v, 2) for v in rated], cited=cited)
+            if jmode == "on":
+                requirement_match = jev_match
     level_fit = float(CONFIG["candidate"]["level_fit"].get(
         level_key(level, posting.has_direct_reports,
                   posting.level.value if posting.level else "unknown"), 60))
