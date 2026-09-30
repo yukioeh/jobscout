@@ -16,7 +16,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 AGENTS="$HOME/Library/LaunchAgents"
-LABELS=(com.ericharvey.jobscout.hourly com.ericharvey.jobscout.digest)
+LABELS=(com.ericharvey.jobscout.hourly com.ericharvey.jobscout.digest com.ericharvey.jobscout.shadow)
 
 case "${1:-}" in
   install)
