@@ -94,6 +94,14 @@ ever collapse it to a single holistic score, scores cluster and the
 system stops discriminating. That failure already happened once in an
 earlier Gemini-based attempt and is the reason for the two-pass design.
 
+**Pass one is stored, pass two is not.** The `extractions` table keeps
+each posting's requirements, tiers, level and tags, keyed by a hash of
+model, prompt, theme list and posting text. A re-score reuses them and
+runs pass two only, so a change is measured against the same questions.
+Editing the pass-one prompt or model invalidates the cache by itself;
+`rescore_stored.py --reextract` forces it otherwise. The eval harness
+passes no connection and always extracts fresh.
+
 ## Before you change scoring
 
 Run `python eval/rescore.py` after any edit to `config/scoring.yaml`. It

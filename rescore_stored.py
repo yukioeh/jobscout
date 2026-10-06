@@ -16,6 +16,11 @@ their full text, which is why this reads from there and never fetches.
 Use it when something changed that would alter scores across the board:
 a claim added to the dossier, a weight, a threshold.
 
+Pass one is read from the extractions table where it matches, so a
+re-score normally runs pass two only: cheaper, and measured against
+the same requirements as before. Postings scored before that table
+existed extract once and are stored. --reextract forces pass one.
+
 Alerts already sent are never sent again. Everything else that crosses
 the alert threshold emails with documents, exactly as run.py would.
 """
@@ -61,6 +66,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--limit", type=int, default=0, help="stop after N scored, for a cheap trial")
+    ap.add_argument("--reextract", action="store_true",
+                    help="run pass one again even where a stored extraction matches")
     args = ap.parse_args()
 
     conn = store.connect()
@@ -78,7 +85,7 @@ def main() -> None:
             continue
 
         try:
-            fit, tags, cost = score_posting(posting)
+            fit, tags, cost = score_posting(posting, conn, args.reextract)
         except Exception as exc:
             print(f"  failed: {posting.company} — {posting.title[:40]}: {exc}")
             continue

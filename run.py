@@ -279,7 +279,7 @@ def main() -> None:
             continue
 
         try:
-            fit, tags, cost = score_posting(posting)
+            fit, tags, cost = score_posting(posting, conn)
         except Exception as exc:
             print(f"  score failed for {posting.company} — {posting.title}: {exc}")
             continue

@@ -17,12 +17,14 @@ back to zero.
 
 from __future__ import annotations
 
+import hashlib
 import os
 from pathlib import Path
 
 import yaml
 
 import jev
+import store
 from llm import RATES, Usage, complete, parse_json
 from schema import Fit, Posting, Requirement, RequirementScore, Tier
 
@@ -110,13 +112,33 @@ REQUIREMENTS:
 {requirements}"""
 
 
-def extract_requirements(posting: Posting):
-    text, usage = complete(
-        PASS1,
-        PASS_ONE.format(posting=posting.raw_text[:18000], themes=THEME_TAGS),
-        max_tokens=4000,   # headroom above observed ~700-1000 completion tokens
-    )
-    data = parse_json(text)
+def extract_requirements(posting: Posting, conn=None, fresh: bool = False):
+    """Pass one, cached per posting when given a database connection.
+
+    Pass one is the remaining source of run-to-run variance: a second
+    extraction produces a different question set, not a second opinion
+    on the same one. Storing it makes a re-score pass two only, so a
+    claims or weight change is measured against fixed requirements.
+
+    The cache key hashes everything that decides the output: model,
+    prompt, theme list and the text the model sees. Change any of them
+    and the next score extracts again, keeping the old row beside the
+    new one. fresh=True re-extracts even when the inputs match.
+    """
+    prompt = PASS_ONE.format(posting=posting.raw_text[:18000], themes=THEME_TAGS)
+    key = hashlib.sha256(f"{PASS1}\n{prompt}".encode()).hexdigest()[:16]
+    data = None
+    if conn is not None and not fresh:
+        data = store.get_extraction(conn, posting.fingerprint(), key)
+    usage = Usage()
+    if data is None:
+        text, usage = complete(
+            PASS1, prompt,
+            max_tokens=4000,   # headroom above observed ~700-1000 completion tokens
+        )
+        data = parse_json(text)
+        if conn is not None:
+            store.save_extraction(conn, posting.fingerprint(), key, PASS1, data)
     reqs = [
         Requirement(text=r["text"], tier=Tier(r["tier"]), rationale=r.get("rationale", ""))
         for r in data["requirements"]
@@ -225,9 +247,15 @@ def level_key(level: str, has_reports: bool, title_level: str = "unknown") -> st
     return level
 
 
-def score_posting(posting: Posting) -> tuple[Fit, list[str], float]:
-    """Returns the fit, the posting's theme tags, and what scoring cost."""
-    reqs, level, tags, thin, u1 = extract_requirements(posting)
+def score_posting(posting: Posting, conn=None,
+                  reextract: bool = False) -> tuple[Fit, list[str], float]:
+    """Returns the fit, the posting's theme tags, and what scoring cost.
+
+    With conn, pass one is read from and saved to the database; see
+    extract_requirements. Without it, every call extracts fresh, which
+    is what the eval harness wants.
+    """
+    reqs, level, tags, thin, u1 = extract_requirements(posting, conn, reextract)
     if thin or not reqs:
         raise ValueError("Posting too thin to score")
 

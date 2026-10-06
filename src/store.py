@@ -28,6 +28,10 @@ CREATE TABLE IF NOT EXISTS scores (
 CREATE TABLE IF NOT EXISTS outcomes (
   fingerprint TEXT PRIMARY KEY, applied_at TEXT, outcome TEXT, notes TEXT, updated_at TEXT
 );
+CREATE TABLE IF NOT EXISTS extractions (
+  fingerprint TEXT, input_hash TEXT, extracted_at TEXT, model TEXT, payload TEXT,
+  PRIMARY KEY (fingerprint, input_hash)
+);
 CREATE TABLE IF NOT EXISTS alerts (fingerprint TEXT PRIMARY KEY, sent_at TEXT);
 CREATE TABLE IF NOT EXISTS digested (fingerprint TEXT PRIMARY KEY, sent_at TEXT);
 """
@@ -108,6 +112,21 @@ def record_score(conn, fingerprint: str, fit=None, gated_reason: str | None = No
          fit.total if fit else None, fit.requirement_match if fit else None,
          fit.level_fit if fit else None, fit.location_fit if fit else None,
          gated_reason, fit.to_json() if fit else None),
+    )
+    conn.commit()
+
+
+def get_extraction(conn, fingerprint: str, input_hash: str) -> dict | None:
+    row = conn.execute("SELECT payload FROM extractions WHERE fingerprint=? AND input_hash=?",
+                       (fingerprint, input_hash)).fetchone()
+    return json.loads(row[0]) if row else None
+
+
+def save_extraction(conn, fingerprint: str, input_hash: str, model: str, payload: dict) -> None:
+    conn.execute(
+        "INSERT OR REPLACE INTO extractions VALUES (?,?,?,?,?)",
+        (fingerprint, input_hash, datetime.now(timezone.utc).isoformat(), model,
+         json.dumps(payload)),
     )
     conn.commit()
 
