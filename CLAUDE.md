@@ -109,7 +109,9 @@ the other two and will cost Eric real afternoons.
 `eval/handscored.json` is ground truth from 2026-09-03, hand-scored
 against eight real postings. It is a starting point, not tuned. The
 `outcomes` table in the database is where real signal accumulates:
-what got applied to, what answered.
+what got applied to, what answered. Eric records it by hand with
+`record.py`. `declined` means the employer rejected him; when he turns
+a role down it goes in the note, not the outcome.
 
 ## Known rough edges
 
@@ -121,9 +123,9 @@ what got applied to, what answered.
   affects one cover letter sentence.
 - RSS entries rarely carry full descriptions. The gate refuses to score
   anything under 600 characters rather than guessing from a title.
-- Nothing in this repo has made a live API call, fetched a real board,
-  or sent an email. Scoring logic and document generation were verified;
-  the network paths were not.
+- Silent Jev failures. A rejected key or an outage prints
+  `jev unavailable` to `data/run.log` and the run carries on, so a
+  dead key shows up only as `data/shadow.jsonl` going stale.
 
 ## Where things live
 

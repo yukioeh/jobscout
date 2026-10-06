@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS scores (
   PRIMARY KEY (fingerprint, scored_at)
 );
 CREATE TABLE IF NOT EXISTS outcomes (
-  fingerprint TEXT PRIMARY KEY, applied INTEGER DEFAULT 0, response TEXT, note TEXT
+  fingerprint TEXT PRIMARY KEY, applied_at TEXT, outcome TEXT, notes TEXT, updated_at TEXT
 );
 CREATE TABLE IF NOT EXISTS alerts (fingerprint TEXT PRIMARY KEY, sent_at TEXT);
 CREATE TABLE IF NOT EXISTS digested (fingerprint TEXT PRIMARY KEY, sent_at TEXT);
@@ -36,8 +36,53 @@ CREATE TABLE IF NOT EXISTS digested (fingerprint TEXT PRIMARY KEY, sent_at TEXT)
 def connect() -> sqlite3.Connection:
     DB.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB)
+    _migrate_outcomes(conn)
     conn.executescript(SCHEMA)
     return conn
+
+
+# declined: the employer rejected him. His own turn-downs go in notes.
+OUTCOMES = ("applied", "declined", "interviewed", "offer", "ghosted")
+
+
+def _migrate_outcomes(conn) -> None:
+    """Replace the first outcomes shape (applied flag, response, note).
+
+    It was never written to, so it is dropped while empty. If it ever
+    holds rows, stop rather than lose them.
+    """
+    cols = [r[1] for r in conn.execute("PRAGMA table_info(outcomes)")]
+    if "applied" not in cols:
+        return
+    if conn.execute("SELECT COUNT(*) FROM outcomes").fetchone()[0]:
+        raise RuntimeError("outcomes has rows in the old shape; migrate them by hand")
+    conn.execute("DROP TABLE outcomes")
+    conn.commit()
+
+
+def record_outcome(conn, fingerprint: str, outcome: str, notes: str | None = None,
+                   applied_at: str | None = None) -> None:
+    """One row per posting, updated as it moves (applied, then interviewed).
+
+    applied_at is kept from the first record unless given again. Notes
+    accumulate, dated, so the history of a posting survives updates.
+    """
+    if outcome not in OUTCOMES:
+        raise ValueError(f"outcome must be one of {', '.join(OUTCOMES)}")
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    row = conn.execute("SELECT applied_at, notes FROM outcomes WHERE fingerprint=?",
+                       (fingerprint,)).fetchone()
+    old_applied, old_notes = row if row else (None, None)
+    if notes:
+        notes = f"{now[:10]} {outcome}: {notes}"
+        notes = f"{old_notes}\n{notes}" if old_notes else notes
+    else:
+        notes = old_notes
+    conn.execute(
+        "INSERT OR REPLACE INTO outcomes VALUES (?,?,?,?,?)",
+        (fingerprint, applied_at or old_applied or now, outcome, notes, now),
+    )
+    conn.commit()
 
 
 def seen(conn, fingerprint: str) -> bool:

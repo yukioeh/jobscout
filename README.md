@@ -140,7 +140,7 @@ role. The referral is the thing the model can't see.
 - Scoring has been validated against eight postings hand-scored on
   2026-09-03 (`eval/handscored.json`). That's a starting point, not a
   tuned model. Record what you applied to and what answered, in the
-  `outcomes` table, and retune against real signal.
+  `outcomes` table with `record.py`, and retune against real signal.
 
 ---
 
