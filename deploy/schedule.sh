@@ -16,7 +16,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 AGENTS="$HOME/Library/LaunchAgents"
-LABELS=(com.ericharvey.jobscout.hourly com.ericharvey.jobscout.digest com.ericharvey.jobscout.shadow)
+LABELS=(com.ericharvey.jobscout.hourly com.ericharvey.jobscout.digest com.ericharvey.jobscout.shadow com.ericharvey.jobscout.backup)
 
 case "${1:-}" in
   install)
@@ -28,7 +28,7 @@ case "${1:-}" in
       echo "loaded $label"
     done
     echo
-    echo "hourly poll and the 17:30 digest are scheduled."
+    echo "hourly poll, 17:30 digest, 18:00 report and 03:00 backup are scheduled."
     echo "logs: $ROOT/data/run.log"
     ;;
 
