@@ -163,7 +163,7 @@ def pending_digest(conn, floor: float, ceiling: float) -> list:
     """
     return conn.execute(
         """
-        SELECT p.company, p.title, p.url, p.posted_date, p.fingerprint,
+        SELECT p.company, p.title, p.url, p.posted_date, p.fingerprint, p.location_tier,
                s.total, s.requirement_match, s.level_fit, s.location_fit, s.detail
         FROM scores s
         JOIN postings p ON p.fingerprint = s.fingerprint
