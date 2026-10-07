@@ -55,6 +55,41 @@ servicenow:
       Coached the team to build with AI rather than only train on it, setting delivery standards and moving people from using AI tools to designing their own recipes, assets, and review criteria.
     tags: [people_leadership, coaching, talent_development, delivery_standards]
 
+  # Bench: alternate angles on the claims above. Each one displaces the
+  # bullet resting on the same claim when the posting leans that way,
+  # so the page says the same true things in the emphasis that fits.
+  - id: SN-B-FACTORY-OPS
+    in_master: false
+    claim_ids: [SN-CONTENT-FACTORY]
+    label: "Rebuilt how enablement assets get produced"
+    body: >-
+      Replaced a manual production process with an AI system that turns raw system demos into near-final job aids, overviews, video scripts, and VILT outlines against a selected output recipe. Asset creation time fell about 80%. The system generated its own UAT scripts and ran an automated review pass on its output.
+    tags: [operating_model, roi, measurement, automation, content_production]
+
+  - id: SN-B-ADOPTION-MEASURE
+    in_master: false
+    claim_ids: [SN-COACH-ADOPTION]
+    label: "Took AI adoption to 85% and measured it"
+    body: >-
+      Led the AI Sales Coach enablement program across a 6,000+ person go-to-market organization, tracking adoption to 85% and satisfaction to 4.5/5. The team trained 6,000+ at global Sales Kickoff and 2,000+ virtually across 12 Co-Labs and 10 Office Hours.
+    tags: [measurement, roi, executive_reporting, ai_adoption]
+
+  - id: SN-B-AGENT
+    in_master: false
+    claim_ids: [SN-CRM-AGENT-PROTOTYPE]
+    label: "Designed an in-CRM answer agent"
+    body: >-
+      Designed an answer agent to sit inside the CRM for a new platform going to 7,000+ sellers, with a path from Claude Project prototype to skill to a companywide AI Sales Coach plugin embedded through Moveworks. Early stage work.
+    tags: [llm_workflow, product, roadmap, ai_systems]
+
+  - id: SN-B-STACK
+    in_master: false
+    claim_ids: [SN-DEMAND-AUTOMATION]
+    label: "Ran adoption across the GTM technology stack"
+    body: >-
+      Directed the team scaling enablement and adoption across Outreach.io, ZoomInfo, and LinkedIn Sales Navigator for 1,500+ sellers in 10+ regions. The work produced $76.3M in influenced pipeline and 426 qualified opportunities.
+    tags: [martech, platform_portfolio, multi_region, sales, gtm]
+
 vector:
   - id: VCL-B-TRAINING
     in_master: true
@@ -89,23 +124,27 @@ vector:
       Published the AI Video Transformation Pyramid, an emotional believability assessment for AI-generated media, and the “Beyond Sincerity” framework under The Authentic .AI.
     tags: [thought_leadership, external_visibility, publishing, research]
 
-sap:
-  - id: SAP-B-IRIS-OWN
-    in_master: true
-    claim_ids: [SAP-IRIS-OWNERSHIP]
-    label: "Influenced €7.58B in total contract value"
+  - id: VCL-B-CHANGE
+    in_master: false
+    claim_ids: [VCL-TRAINING]
+    label: "Ran AI change management for global B2B clients"
     body: >-
-      Served as business owner for IRIS, SAP’s video content delivery platform, co-developed with Kaltura: defined capability requirements, prioritized what shipped against GTM needs, and drove adoption to 380,000+ video messages delivered across 22,000 opportunities.
-    tags: [platform_ownership, roadmap, prioritization, vendor_partnership, portfolio]
+      Designed a modular AI training and change management curriculum for global B2B clients covering prompt engineering, workflow automation, and ethical AI use. One five-day engagement took the full sales and marketing organization of a global fuel technology firm through it and returned a 90 NPS.
+    tags: [change_management, governance, controls, training]
 
-  - id: SAP-B-IRIS-INT
-    in_master: true
-    claim_ids: [SAP-IRIS-INTEGRATION]
-    label: "Lifted platform adoption 80%"
+  - id: VCL-B-BUILD
+    in_master: false
+    claim_ids: [VCL-AGENTS, VCL-PIPELINE]
+    label: "Built the agent workflows and the pipelines they feed"
     body: >-
-      Integrated IRIS across 17 sales and content systems (Adobe Experience Manager, Seismic, Highspot, Outreach.io, 6sense, Sprinklr, Consensus), working with martech and IT so content flowed between tools. Cut content discovery time by 25%.
-    tags: [martech, integration, interoperability, platform_portfolio, tooling]
+      Built agent workflows for lead scoring and personalized outreach at a global consulting firm using Make.com and n8n. Separately turned a static marketing PDF into a video, 50 social graphics, and a full set of SDR, AE, and social activation assets, every piece generated and assembled through AI workflows.
+    tags: [automation, hands_on, llm_workflow, integration]
 
+# SAP is two managed blocks now, matching the master and the periods in
+# claims.yaml. 2018-2024 is AI Enablement & Sales Readiness; 2013-2018
+# is Digital & Virtual Experience. Presales (2010-2013) stays static in
+# the master and is not managed here.
+sap_ai:
   - id: SAP-B-AI-COMMUNITY
     in_master: true
     claim_ids: [SAP-AI-COMMUNITY]
@@ -130,14 +169,6 @@ sap:
       Secured budget for centralized global programs by building the business case with regional leadership across five regions. Led multi-million-euro vendor selection and contract negotiation.
     tags: [business_case, roi, financial_discipline, vendor_management, influence_without_authority]
 
-  - id: SAP-B-STUDIOS
-    in_master: true
-    claim_ids: [SAP-STUDIOS]
-    label: "Saved €14M annually"
-    body: >-
-      Defined and executed the strategy for a worldwide network of 88 virtual studios delivering 115,000 hours of virtual presentations, establishing a new "Digital Hubs" organization.
-    tags: [scale, org_design, cost_savings, budget, operating_model]
-
   - id: SAP-B-ONBOARDING
     in_master: true
     claim_ids: [SAP-ONBOARDING]
@@ -145,6 +176,113 @@ sap:
     body: >-
       Designed a digital enablement program and global badge curriculum at the SAP Academy for Customer Success, materially reducing time to productivity.
     tags: [onboarding, curriculum, scale, multi_region, training]
+
+  # SAP-PRESALES-TOOLS deliberately has no bench bullet. The master
+  # already carries that claim as a static bullet under Solution
+  # Advisor (2010-2013), and the sap bullet block this file manages is
+  # the 2013-2024 role. A bench bullet on that claim printed the same
+  # sentence twice on one page, under two different jobs. Checking
+  # bullets.yaml for unexpressed claims was not enough; the master
+  # expresses some of them outside the blocks the generator touches.
+
+  - id: SAP-B-PORTFOLIO
+    in_master: false
+    claim_ids: [SAP-MICROSITES]
+    label: "Consolidated 13 delivery platforms to 3"
+    body: >-
+      Engineered and implemented a microsite franchise model across five regions, consolidating delivery platforms from 13 to 3. Volume grew 4x to 6,000+ microsites in 2023, influencing 15,000 opportunities and €342M in total contract value.
+    tags: [platform_portfolio, operating_model, governance, multi_region]
+
+  - id: SAP-B-CURRICULUM
+    in_master: false
+    claim_ids: [SAP-ONBOARDING, SAP-AI-COMMUNITY]
+    label: "Built global curricula for 2,400+ new hires"
+    body: >-
+      Designed a digital enablement program and global badge curriculum for 2,400+ new hires across 65+ countries at the SAP Academy for Customer Success. Also led the training curriculum and the 75-prompt self-serve catalog behind SAP's cross-organizational AI community, reaching 300+ professionals.
+    tags: [curriculum, onboarding, training, scale]
+
+# 2013-2018, Digital & Virtual Experience: the platform and studio era.
+# Three slots in the master.
+sap_digital:
+  - id: SAP-B-IRIS-OWN
+    in_master: true
+    claim_ids: [SAP-IRIS-OWNERSHIP]
+    label: "Influenced €7.58B in total contract value"
+    body: >-
+      Served as business owner for IRIS, SAP’s video content delivery platform, co-developed with Kaltura: defined capability requirements, prioritized what shipped against GTM needs, and drove adoption to 380,000+ video messages delivered across 22,000 opportunities.
+    tags: [platform_portfolio, roadmap, product, governance]
+
+  - id: SAP-B-IRIS-INT
+    in_master: true
+    claim_ids: [SAP-IRIS-INTEGRATION]
+    label: "Lifted platform adoption 80%"
+    body: >-
+      Integrated IRIS across 17 sales and content systems (Adobe Experience Manager, Seismic, Highspot, Outreach.io, 6sense, Sprinklr, Consensus), working with martech and IT so content flowed between tools. Cut content discovery time by 25%.
+    tags: [martech, integration, platform_portfolio, operating_model]
+
+  - id: SAP-B-STUDIOS
+    in_master: true
+    claim_ids: [SAP-STUDIOS]
+    label: "Saved €14M annually"
+    body: >-
+      Defined and executed the strategy for a worldwide network of 88 virtual studios delivering 115,000 hours of virtual presentations, establishing a new "Digital Hubs" organization.
+    tags: [scale, operating_model, roi, multi_region]
+
+  # Bench for this block.
+  - id: SAP-B-IRIS-STACK
+    in_master: false
+    claim_ids: [SAP-IRIS-INTEGRATION, SAP-IRIS-OWNERSHIP]
+    label: "Owned a platform and the 17-system stack around it"
+    body: >-
+      Owned IRIS as its business partner, deciding what shipped against GTM needs, and integrated it across 17 sales and content systems so content moved between tools rather than sitting in a repository. Adoption rose 80% and content discovery time fell 25%.
+    tags: [platform_portfolio, integration, product, martech, operating_model]
+
+# The location segment of the resume contact line, chosen by the
+# posting's location tier so an on-site or hybrid role sees the market
+# it is hiring for. Home is Chagrin Falls, OH; remote and anything
+# unmatched falls back to that.
+#
+# These state openness to relocation rather than residence in a city
+# Eric does not live in yet. "Boston, MA" on its own would read as a
+# current address and would not be true. Everything else in a generated
+# document traces to a claim id and gets checked; this line does not,
+# so it is written to be defensible on its face.
+#
+# Trailing "  •" is the separator before the phone number. Keep it.
+location_lines:
+  default:          "Chagrin Falls, OH  •  Open to remote or relocation  •"
+  remote_us:        "Chagrin Falls, OH  •  Open to remote or relocation  •"
+  cleveland:        "Chagrin Falls, OH  •  Open to remote  •"
+  # Target-market address for the two markets Eric will move to, so a
+  # screener filtering on location does not drop the application before
+  # a person reads it. The move is real but not yet made, and the
+  # cover letter closer is worded to commit to being on site rather
+  # than to claim he already lives there.
+  # No "Open to remote" on these two. They are only ever chosen for an
+  # on-site or hybrid role in that market, and telling a company that
+  # mandates four days on site that you would rather be remote argues
+  # against the application.
+  boston:           "Brookline, MA  •"
+  bay_area:         "San Francisco, CA  •"
+  # NYC stays on the home address: it is referral-track, and a referral
+  # makes the location conversation directly rather than on paper.
+  hybrid_northeast: "Chagrin Falls, OH  •  Open to remote or relocation  •"
+
+# Requirements that never earn a row in the cover letter's T-table.
+#
+# The table holds three rows and fills them with the highest-scoring
+# requirements, so anything table-stakes scores a 4 and crowds out the
+# evidence that actually argues the case. "Fluency in English (spoken
+# and written)" took a slot on a Lovable letter, answered by the claim
+# that reads "Japanese, fluent, JLPT Level 2. English native." True,
+# and worth nothing to a reader.
+#
+# This is presentation only. The requirement is still scored, still
+# counts toward requirement_match, and still counts in must-have
+# coverage. It just does not get argued in the letter.
+cover_letter_skip:
+  - "(?i)\\benglish\\b.{0,40}\\b(fluen|proficien)"
+  - "(?i)\\b(fluen|proficien)\\w*\\b.{0,40}\\benglish\\b"
 
 # Header lines. Selected to echo the posting title. Never invented at
 # generation time: the closest match wins, and unknown falls back to
@@ -160,6 +298,8 @@ headers:
     tags: [martech, platform_portfolio, product, marketing]
   - text: "AI ADOPTION & ENABLEMENT LEADER"
     tags: [ai_adoption, change_management, adoption]
+  - text: "ENTERPRISE AI & BUSINESS AUTOMATION LEADER"
+    tags: [operating_model, platform_portfolio, automation, integration, governance]
 
 # Summary opening sentences. One per lead proof point, per the
 # tailoring guide: lead with whatever maps to their top requirement.
@@ -168,19 +308,28 @@ summary_leads:
     claim_ids: [SN-COACH-ADOPTION]
     tags: [ai_adoption, change_management, training, scale]
     text: >-
-      Enablement and AI transformation leader with 15+ years running global programs across multi-region organizations. At ServiceNow, led the program that took AI Sales Coach adoption to 85% across a 6,000-person go-to-market organization, directed the build of an AI content production system that cut enablement asset creation time by 80%, and directed the team generating $76.3M in influenced pipeline and $45M in net annual contract value.
+      Enablement and AI transformation leader with 15+ years running global programs across multi-region organizations. At ServiceNow, led the program that took AI Sales Coach adoption to 85% across a 6,000-person go-to-market organization, built and deployed an AI content production system that cut enablement asset creation time by 80%, and directed the team generating $76.3M in influenced pipeline and $45M in net annual contract value.
   - id: LEAD-SYSTEMS
     claim_ids: [SN-CONTENT-FACTORY]
     tags: [ai_systems, content_production, llm_workflow, hands_on, automation]
     text: >-
-      AI systems and enablement leader with 15+ years running global programs across multi-region organizations. At ServiceNow, directed the build of an AI content production system that cut enablement asset creation time by 80%, led the program that took AI Sales Coach adoption to 85% across a 6,000-person go-to-market organization, and directed the team generating $76.3M in influenced pipeline and $45M in net annual contract value.
+      AI systems and enablement leader with 15+ years running global programs across multi-region organizations. At ServiceNow, built and deployed an AI content production system that cut enablement asset creation time by 80%, led the program that took AI Sales Coach adoption to 85% across a 6,000-person go-to-market organization, and directed the team generating $76.3M in influenced pipeline and $45M in net annual contract value.
   - id: LEAD-PLATFORM
     claim_ids: [SAP-IRIS-INTEGRATION, SAP-MICROSITES]
     tags: [martech, platform_portfolio, integration, product, portfolio]
     text: >-
-      Marketing technology and AI transformation leader with 15+ years running platform portfolios and AI programs in global, multi-region organizations. Integrated a video content delivery platform across a 17-system sales and marketing stack, lifting adoption 80%, directed the build of an AI content production system that cut asset creation time by 80%, and led the program that took generative AI to 85% adoption across a 6,000-person go-to-market organization.
+      Marketing technology and AI transformation leader with 15+ years running platform portfolios and AI programs in global, multi-region organizations. Integrated a video content delivery platform across a 17-system sales and marketing stack, lifting adoption 80%, built and deployed an AI content production system that cut asset creation time by 80%, and led the program that took generative AI to 85% adoption across a 6,000-person go-to-market organization.
+  # For roles that sit in IT or business operations rather than GTM: an
+  # enterprise automation function reporting to a CIO reads a sales
+  # enablement lead as the wrong candidate, however strong the record.
+  # Same claims, told as platform and operating model work.
+  - id: LEAD-ENTERPRISE
+    claim_ids: [SAP-IRIS-INTEGRATION, SAP-MICROSITES, SN-CONTENT-FACTORY, SN-CRM-AGENT-PROTOTYPE]
+    tags: [operating_model, platform_portfolio, integration, automation, governance, controls]
+    text: >-
+      Enterprise systems and AI transformation leader with 15+ years running platform portfolios and automation programs across global, multi-region organizations. At SAP, integrated a video content delivery platform across a 17-system sales and content stack, lifting adoption 80%, and consolidated regional delivery platforms from 13 to 3. At ServiceNow, built and deployed an AI content production system that cut asset creation time by 80%, and designed an in-CRM answer agent for a platform going to 7,000+ sellers.
   - id: LEAD-REVENUE
     claim_ids: [SN-DEMAND-AUTOMATION]
     tags: [revenue_impact, gtm, pipeline, sales]
     text: >-
-      Enablement and AI transformation leader with 15+ years running global programs across multi-region organizations. At ServiceNow, directed the team generating $76.3M in influenced pipeline, 426 qualified opportunities, and $45M in net annual contract value, led the program that took AI Sales Coach adoption to 85% across a 6,000-person organization, and directed the build of an AI content production system that cut asset creation time by 80%.
+      Enablement and AI transformation leader with 15+ years running global programs across multi-region organizations. At ServiceNow, directed the team generating $76.3M in influenced pipeline, 426 qualified opportunities, and $45M in net annual contract value, led the program that took AI Sales Coach adoption to 85% across a 6,000-person organization, and built and deployed an AI content production system that cut asset creation time by 80%.

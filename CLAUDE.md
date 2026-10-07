@@ -47,11 +47,26 @@ scored low, because no requirement match should rescue a step
 backwards. This corrected an earlier rubric that scored an IC role at 0
 and buried the highest-matching posting in the set.
 
-**Location never zeroes a role.** Ranked remote, Bay Area, Cleveland,
-Boston, then hybrid Northeast and down. Tokyo is commented out in
-`config/scoring.yaml` on purpose: it is his top location overall but a
-separate workstream, agency-led, gated on visa decisions. Do not
-uncomment it without being asked.
+**Location is a gate, not a score.** Reversed 2026-09-09, replacing
+"location never zeroes a role." Scored as a dimension it behaved as a
+near-binary: the four markets in play all landed 90 to 100, everything
+else 10 to 55, and it produced 29% of the total spread on a 20% weight
+while requirement match produced 53% on 60%. The score was largely
+measuring whether he would move there. Dropping its weight to fix that
+let a Wisconsin role and an NYC one outrank Boston and Bay Area ones,
+so weight was never the lever.
+
+`dealbreakers.locations_in_play` now holds remote, Cleveland, Boston
+and the Bay Area; anything else is gated before a model call. What
+remains in `location.tiers` is a small preference among acceptable
+markets: remote and Cleveland at 100 because neither needs a move,
+Boston and the Bay Area at 90. At a 10% weight that is about a point,
+which is meant to break ties and nothing more.
+
+NYC is gated. It is referral-track, and a referral argues the location
+directly. Tokyo stays commented out in `config/scoring.yaml`: his top
+location overall, but a separate workstream, agency-led, gated on visa
+decisions. Do not uncomment it without being asked.
 
 **Fit and competition are separate facts.** Remote scores 100 despite
 drawing heavy applicant volume. The answer to volume is speed, surfaced
@@ -79,6 +94,14 @@ ever collapse it to a single holistic score, scores cluster and the
 system stops discriminating. That failure already happened once in an
 earlier Gemini-based attempt and is the reason for the two-pass design.
 
+**Pass one is stored, pass two is not.** The `extractions` table keeps
+each posting's requirements, tiers, level and tags, keyed by a hash of
+model, prompt, theme list and posting text. A re-score reuses them and
+runs pass two only, so a change is measured against the same questions.
+Editing the pass-one prompt or model invalidates the cache by itself;
+`rescore_stored.py --reextract` forces it otherwise. The eval harness
+passes no connection and always extracts fresh.
+
 ## Before you change scoring
 
 Run `python eval/rescore.py` after any edit to `config/scoring.yaml`. It
@@ -94,7 +117,9 @@ the other two and will cost Eric real afternoons.
 `eval/handscored.json` is ground truth from 2026-09-03, hand-scored
 against eight real postings. It is a starting point, not tuned. The
 `outcomes` table in the database is where real signal accumulates:
-what got applied to, what answered.
+what got applied to, what answered. Eric records it by hand with
+`record.py`. `declined` means the employer rejected him; when he turns
+a role down it goes in the note, not the outcome.
 
 ## Known rough edges
 
@@ -106,9 +131,9 @@ what got applied to, what answered.
   affects one cover letter sentence.
 - RSS entries rarely carry full descriptions. The gate refuses to score
   anything under 600 characters rather than guessing from a title.
-- Nothing in this repo has made a live API call, fetched a real board,
-  or sent an email. Scoring logic and document generation were verified;
-  the network paths were not.
+- Silent Jev failures. A rejected key or an outage prints
+  `jev unavailable` to `data/run.log` and the run carries on, so a
+  dead key shows up only as `data/shadow.jsonl` going stale.
 
 ## Where things live
 

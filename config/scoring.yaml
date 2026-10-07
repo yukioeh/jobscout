@@ -24,17 +24,40 @@ candidate:
     vp: 85
     executive_director: 75   # bank ladder, stretch on a cold application
     unknown: 60
+    # An IC role whose title carries no director standing. Not zeroed:
+    # zeroing an IC role is the rubric error that buried the
+    # highest-matching posting in the set. Not 100 either, which is
+    # what it silently earned before, by collapsing into director_ic.
+    ic: 60
 
 location:
   # Ranked preference. Never zeroes a role on its own.
   # Tokyo pulled out 2026-09-03: separate workstream, agency-led,
   # gated on visa decisions. Slot back in at 100 when that changes.
+  #
+  # Home is Chagrin Falls, OH, so cleveland carries no relocation
+  # friction and ranks just under remote. Boston and the Bay Area are
+  # both open on relocation and are held equal. NYC stays low on
+  # purpose: it is referral-track, and the referral is the thing this
+  # scorer cannot see.
+  # Location turned out to be close to binary in practice: a market is
+  # in play or it is not, and the in-play ones all scored 90 to 100.
+  # Scored as a dimension it carried 29% of the total spread on a 20%
+  # weight, because its raw variance dwarfed everything else, and it
+  # was really measuring "would he move there" rather than fit. It is
+  # a gate now (dealbreakers.locations_in_play), and what remains here
+  # is a small preference among markets that are all acceptable.
+  #
+  # Remote and Cleveland edge the other two: neither needs a move.
+  # At a 10% weight the gap between them is about one point, which is
+  # the intended size. It breaks ties, it does not decide anything.
   tiers:
     remote_us: 100
-    bay_area: 95
-    cleveland: 90
-    boston: 85
-    hybrid_northeast: 55     # NYC / Jersey City / Philadelphia metro
+    cleveland: 100           # home, no relocation
+    boston: 90               # open to relocation
+    bay_area: 90             # open to relocation
+    # Gated, not scored. Values kept only so a tier is never missing.
+    hybrid_northeast: 55     # NYC, referral-track
     other_us_hybrid: 40
     other_us_onsite: 25
     international: 10
@@ -48,10 +71,22 @@ competition_signals:
   surface_posting_age: true
   flag_stale_after_hours: 72
 
+# Requirement match carried 60% of the weight but produced only 53% of
+# the real spread, while location produced 29% on a 20% weight. Level
+# barely varies once the gate has run: it is ~100 for anything that
+# gets through, so it was mostly a constant diluting the one dimension
+# that actually discriminates. With both now gated rather than scored,
+# the weights say what the score is for.
+# Location is not scored at all now. It is a gate, and among the four
+# markets that pass it the choice is Eric's to make, not the score's:
+# whether Boston beats remote for a given role depends on things the
+# model cannot see. Carrying it at 10% was adding a near-constant to
+# every in-play posting and compressing the one dimension that
+# discriminates. The tier still travels with the alert as information.
 weights:
-  requirement_match: 0.60
-  level_fit: 0.20
-  location_fit: 0.20
+  requirement_match: 0.90
+  level_fit: 0.10
+  location_fit: 0.0
 
 # Requirement-level weighting assigned by the first pass.
 requirement_tiers:
@@ -76,6 +111,57 @@ dealbreakers:
   commission_only_or_unpaid: true
   contract_under_months: 6
   title_at_or_below_manager: true   # includes senior_manager
+  # Applicant count is the signal wanted here and it does not exist in
+  # any feed: rss.app carries the description, not LinkedIn's live
+  # counter, and reading that counter means scraping the job page,
+  # which is the thing the RSS route exists to avoid. Age is the
+  # available proxy, and it is the same answer this project already
+  # gives to competition: speed. A posting old enough to have collected
+  # a large pile is one a cold application rarely wins.
+  # Set to 0 to disable.
+  max_posting_age_hours: 336        # 14 days
+  # Markets in play. Anything else is gated before a model call rather
+  # than scored low, which reverses the earlier "location never zeroes
+  # a role" rule: scoring it low did not work, because reducing the
+  # weight enough to stop location dominating the spread also let
+  # Wisconsin and NYC roles outrank Boston and Bay Area ones.
+  # NYC is deliberately absent. It is referral-track, and a referral
+  # argues the location directly rather than on paper.
+  locations_in_play: [remote_us, cleveland, boston, bay_area]
+  # Over-qualification is invisible to requirement scoring. Pass two
+  # asks whether the evidence supports the requirement, and 15 years
+  # trivially supports "0-2 years", so ZoomInfo's GTM Consultant II
+  # scored 82 on requirements and alerted at 80.6 with documents
+  # attached. Level could not save it either: the title read unknown
+  # and level is only 10% of the score.
+  #
+  # These have to be role-referential. A plain "early-career" match
+  # would have gated Visa's Director, Applied AI Transformation, where
+  # the phrase describes the analysts he would be coaching. Anything
+  # added here should be checked the same way, against the corpus,
+  # before being trusted.
+  # Compared against the TOP of the advertised band, so it only fires
+  # when even the best case is below the floor. A posting that
+  # advertises nothing parseable is never gated: 55 of 144 scored
+  # postings say nothing about pay, and guessing from silence would
+  # throw away more than it caught.
+  #
+  # Only figures between $40k and $2M count as salary. Benefits lines
+  # are the reason: one posting's largest dollar figure was a $10,000
+  # fertility HRA, and hourly rates ($45/hr) would read as far below
+  # the floor while annualising well above it. Both fall outside the
+  # window and leave the posting ungated.
+  salary_floor: 150000
+  early_career_markers:
+    - '\bthis is an early[- ]career\b'
+    - '\bearly[- ]career\s+(role|position|opportunity|opening|hire)\b'
+    - '\b0\s*[-–—]\s*[12]\s+years\s+of\s+(experience|relevant|professional|work)'
+    - '\brecent graduates?\b[^.]{0,60}\b(encouraged to apply|are welcome|welcome to apply)'
+    - '\b(entry[- ]level|new grad)\s+(role|position|opportunity|program)\b'
+    # Deliberately loose between the words: the posting that needed
+    # this reads "recent U.S. college / university graduate", which a
+    # tighter pattern could not span. One match across the corpus.
+    - '\brecent\b.{0,50}?\b(college|university)\b.{0,25}?\bgraduates?\b'
   # Referral-track roles are out of scope for this scorer by design.
   # JPMorgan scored 65 on a cold rubric and that is the correct read of
   # the paper version. The referral is the thing the model cannot see,
@@ -84,4 +170,28 @@ dealbreakers:
 thresholds:
   tailor_and_alert: 80        # generate documents, send immediate email
   digest_floor: 60            # appears in the daily digest, no documents
+  # Pass two scores the same requirements differently run to run:
+  # measured at stdev 1.8 over six runs on one fixed requirement set,
+  # a 4.4 point range. That only changes an outcome near the alert
+  # line, where a real 79 can print 82 and a real 81 can print 78.
+  # Inside this band the posting is scored twice more and the median
+  # is taken, which costs about a cent and settles the coin flip.
+  # Roughly 8% of postings land in it. Set to 0 to disable.
+  confirmation_band: 4.0
   # below digest_floor: logged only, never surfaced
+
+# TypeSafe Jev. Modes are off | shadow | on. In shadow it is called and
+# logged to data/shadow.jsonl but never changes a decision; compare with
+# eval/shadow_report.py before turning anything on.
+#   early_career  replaces the early_career_markers regexes when on. The
+#                 regex would have gated Visa for saying the role coaches
+#                 early-career analysts.
+#   pass_two      replaces the Flash evidence scoring when on. Measured on
+#                 103 hand-scored requirements: same error as Flash, about
+#                 6x less run-to-run variance, ~$0.0002 a posting. The
+#                 open question is generosity on low scores (n=7).
+jev:
+  model: jev-1.13.0            # pinned; jev-latest moves under you
+  early_career: shadow
+  early_career_threshold: 0.8
+  pass_two: shadow

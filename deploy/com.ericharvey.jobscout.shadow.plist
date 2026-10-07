@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.ericharvey.jobscout.shadow</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/ericharvey/Projects/jobscout/venv/bin/python</string>
+        <string>/Users/ericharvey/Projects/jobscout/eval/shadow_report.py</string>
+        <string>--email</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/ericharvey/Projects/jobscout</string>
+
+    <!-- 18:00 daily, after the digest. If the machine is asleep at 17:30, launchd runs it
+         once on wake rather than skipping the day the way cron would. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>18</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/ericharvey/Projects/jobscout/data/run.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/ericharvey/Projects/jobscout/data/run.log</string>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.ericharvey.jobscout.hourly</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/ericharvey/Projects/jobscout/venv/bin/python</string>
+        <string>/Users/ericharvey/Projects/jobscout/run.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/ericharvey/Projects/jobscout</string>
+
+    <!-- Every hour. Unlike cron, launchd fires this shortly after wake
+         if the interval elapsed while the machine was asleep, which is
+         the whole reason this is a LaunchAgent and not a crontab line. -->
+    <key>StartInterval</key>
+    <integer>3600</integer>
+
+    <!-- Do not fire on load. The first run is done by hand so someone
+         is watching the first batch of emails go out. -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/ericharvey/Projects/jobscout/data/run.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/ericharvey/Projects/jobscout/data/run.log</string>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>

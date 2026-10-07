@@ -1,14 +1,32 @@
 # Poll targets. Board slug is the last path segment of the careers URL.
 # Direct APIs return full descriptions; RSS is for LinkedIn only.
 
-greenhouse: [webflow, customerio, showpad, pendo, databricks, figma, notion, gitlab, hashicorp, vanta]
-lever: [attentive, mixpanel]
+greenhouse: [webflow, customerio, showpad, pendo, databricks, figma, notion, gitlab, hashicorp, vanta, attentive, mixpanel]
+lever: []   # attentive and mixpanel moved to greenhouse, 2026-10
 ashby: [linear, ramp]
 
 rss:
-  - label: linkedin-director-enablement
-    url: "REPLACE_WITH_YOUR_RSS_APP_FEED"
-  - label: linkedin-ai-transformation
-    url: "REPLACE_WITH_YOUR_RSS_APP_FEED"
+  - label: remote-sales-enablement
+    url: "https://rss.app/feeds/sSdSRQN8JMPO54SP.xml"
+  - label: remote-gtm-enablement
+    url: "https://rss.app/feeds/Tkr7xpwXgrdznRVD.xml"
+  - label: remote-ai-adoption
+    url: "https://rss.app/feeds/5JIIJiUCkxuIgwKV.xml"
+  - label: remote-martech
+    url: "https://rss.app/feeds/EL2rwyKfwbpqDkbz.xml"
+  - label: bayarea-enablement
+    url: "https://rss.app/feeds/WPdtfiz69kX1hPn2.xml"
+  - label: bayarea-ai-martech
+    url: "https://rss.app/feeds/LIpE9SDpZ9QqqfzJ.xml"
+  - label: cleveland-sales-enablement
+    url: "https://rss.app/feeds/3jPzG1x3wGR8kWPM.xml"
+  - label: cleveland-ai-strategy
+    url: "https://rss.app/feeds/HTAzGPo8vGhNuGcF.xml"
+  - label: boston-sales-enablement
+    url: "https://rss.app/feeds/Wl1xF3V21Gdc7IQv.xml"
+  - label: boston-ai-transformation
+    url: "https://rss.app/feeds/mNxzduDd114VGof1.xml"
+  - label: boston-martech
+    url: "https://rss.app/feeds/OLesendccG48pbyR.xml"
 
 poll_interval_minutes: 60
