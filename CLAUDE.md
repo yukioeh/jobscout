@@ -102,6 +102,19 @@ Editing the pass-one prompt or model invalidates the cache by itself;
 `rescore_stored.py --reextract` forces it otherwise. The eval harness
 passes no connection and always extracts fresh.
 
+**Jev stays in shadow until the shadow log says otherwise.** Both
+modes in `config/scoring.yaml` log to `data/shadow.jsonl` and change no
+scores; `eval/shadow_report.py` is the evidence, emailed daily at 18:00.
+Switch `early_career` to `on` only once Jev catches early-career postings
+the regex misses. As of 2026-10-06 no early-career posting has reached
+the check (0 of 94), so agreement there proves nothing. Switch
+`pass_two` to `on` only once Jev's mean on requirements the LLM scored
+0 settles near 0. It was 0.46 over 314 such requirements on
+2026-10-06, generous at the bottom and compressed at the top (LLM 4s
+average 3.6), and it would have moved one alert below 80. Inflated
+zeros are the failure this whole design guards against, so a model
+that adds them does not go live on lower variance alone.
+
 ## Before you change scoring
 
 Run `python eval/rescore.py` after any edit to `config/scoring.yaml`. It
