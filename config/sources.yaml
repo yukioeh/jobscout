@@ -1,8 +1,8 @@
 # Poll targets. Board slug is the last path segment of the careers URL.
 # Direct APIs return full descriptions; RSS is for LinkedIn only.
 
-greenhouse: [webflow, customerio, showpad, pendo, databricks, figma, notion, gitlab, hashicorp, vanta]
-lever: [attentive, mixpanel]
+greenhouse: [webflow, customerio, showpad, pendo, databricks, figma, notion, gitlab, hashicorp, vanta, attentive, mixpanel]
+lever: []   # attentive and mixpanel moved to greenhouse, 2026-10
 ashby: [linear, ramp]
 
 rss:
